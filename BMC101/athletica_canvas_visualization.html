@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athletica Canvas Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .canvas-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn.active {
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .canvas {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .canvas.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .canvas-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        /* Business Model Canvas Styles */
+        .bmc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 15px;
+            height: 600px;
+        }
+
+        .bmc-section {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .bmc-section h3 {
+            color: #667eea;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bmc-section p, .bmc-section ul {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #444;
+        }
+
+        .bmc-section ul {
+            padding-left: 15px;
+        }
+
+        .bmc-section li {
+            margin-bottom: 4px;
+        }
+
+        /* Grid positioning for BMC */
+        .key-partners { grid-column: 1; grid-row: 1 / 4; }
+        .key-activities { grid-column: 2; grid-row: 1; }
+        .key-resources { grid-column: 2; grid-row: 2; }
+        .cost-structure { grid-column: 2; grid-row: 3; }
+        .value-propositions { grid-column: 3; grid-row: 1 / 4; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-left-color: #ff9800; }
+        .customer-relationships { grid-column: 4; grid-row: 1; }
+        .channels { grid-column: 4; grid-row: 2; }
+        .customer-segments { grid-column: 5; grid-row: 1 / 3; }
+        .revenue-streams { grid-column: 4 / 6; grid-row: 3; }
+
+        /* Lean Canvas Styles */
+        .lean-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 15px;
+            height: 600px;
+        }
+
+        .lean-section {
+            background: linear-gradient(135deg, #f3f8ff 0%, #e1f0ff 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #764ba2;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .lean-section h3 {
+            color: #764ba2;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lean-section p, .lean-section ul {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #444;
+        }
+
+        .lean-section ul {
+            padding-left: 15px;
+        }
+
+        .lean-section li {
+            margin-bottom: 4px;
+        }
+
+        /* Grid positioning for Lean Canvas */
+        .problem { grid-column: 1; grid-row: 1; }
+        .solution { grid-column: 2; grid-row: 1; }
+        .unique-value-prop { grid-column: 3; grid-row: 1; background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-left-color: #ffc107; }
+        .unfair-advantage { grid-column: 4; grid-row: 1; }
+        .customer-segments-lean { grid-column: 5; grid-row: 1; }
+        .key-metrics { grid-column: 1; grid-row: 2; }
+        .channels-lean { grid-column: 2 / 4; grid-row: 2; }
+        .cost-structure-lean { grid-column: 1 / 3; grid-row: 3; }
+        .revenue-streams-lean { grid-column: 3 / 6; grid-row: 3; }
+
+        .highlight {
+            background: rgba(255, 193, 7, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .bmc-grid, .lean-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .bmc-section, .lean-section {
+                grid-column: 1 !important;
+                grid-row: auto !important;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .canvas {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏋️ Athletica SaaS</h1>
+            <p>Business Model & Lean Canvas Visualization - Ismailia Pilot (3 Months)</p>
+        </div>
+
+        <div class="canvas-toggle">
+            <button class="toggle-btn active" onclick="showCanvas('bmc')">Business Model Canvas</button>
+            <button class="toggle-btn" onclick="showCanvas('lean')">Lean Canvas</button>
+        </div>
+
+        <!-- Business Model Canvas -->
+        <div id="bmc" class="canvas active">
+            <h2 class="canvas-title">Business Model Canvas</h2>
+            <div class="bmc-grid">
+                <div class="bmc-section key-partners">
+                    <h3>Key Partnerships</h3>
+                    <ul>
+                        <li><strong>Micro-influencers:</strong> 5K-10K followers, free premium access</li>
+                        <li><strong>Future partnerships:</strong>
+                            <ul>
+                                <li>Ismailia/Cairo gyms</li>
+                                <li>Egyptian Fitness Academy</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section key-activities">
+                    <h3>Key Activities</h3>
+                    <ul>
+                        <li>Develop Android MVP (Oct 2025): Profiles, scheduling, tracking</li>
+                        <li>Onboard 50 trainers via referrals, Instagram, workshop</li>
+                        <li>Create 10-20 Arabic templates</li>
+                        <li>Collect feedback biweekly</li>
+                        <li>Provide WhatsApp support</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section key-resources">
+                    <h3>Key Resources</h3>
+                    <ul>
+                        <li><strong>Team:</strong> 1 backend, 1 frontend, 1 UI/UX, 1 PM, 2 trainers, 1 IT manager (voluntary)</li>
+                        <li><strong>Tech:</strong> Flutter, Firebase (free tier), Google Forms, WhatsApp</li>
+                        <li><strong>Content:</strong> 10-20 Arabic workout templates</li>
+                        <li><strong>Capital:</strong> Zero budget, seeking funding</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section value-propositions">
+                    <h3>Value Propositions</h3>
+                    <ul>
+                        <li><strong>Arabic-first platform</strong> for scheduling, tracking (3 clients free), workout planning</li>
+                        <li><span class="highlight">100% earnings</span> (no commissions)</li>
+                        <li><strong>Freemium:</strong> Free tier; premium (500/750/1,000 EGP/month)</li>
+                        <li>Ramadan-adjusted scheduling, intuitive UX</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section customer-relationships">
+                    <h3>Customer Relationships</h3>
+                    <ul>
+                        <li><strong>Freemium:</strong> Free tier (3 clients), premium (from 500 EGP/month)</li>
+                        <li><strong>Community:</strong> In-app forum, badges (e.g., 10 clients)</li>
+                        <li><strong>Support:</strong> WhatsApp by PM/IT manager, 24-hour response, FAQs</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section channels">
+                    <h3>Channels</h3>
+                    <ul>
+                        <li><strong>Digital:</strong> Google Play Store (Android MVP), iOS/web post-pilot</li>
+                        <li><strong>Organic:</strong> Instagram/Facebook reels, trainer referrals (20-50 clients each), ASO ("مدرب لياقة")</li>
+                        <li><strong>Offline:</strong> Ismailia workshop</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section customer-segments">
+                    <h3>Customer Segments</h3>
+                    <ul>
+                        <li><strong>Primary:</strong> Independent trainers (Ismailia, Cairo opportunistic)</li>
+                        <li>10-50 clients per trainer</li>
+                        <li>10,000-50,000 EGP/month income</li>
+                        <li>500-2,000 EGP/client</li>
+                        <li><span class="highlight">~70% uncertified</span></li>
+                        <li><strong>Future:</strong> Cairo (150 trainers), gym owners, MENA</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section cost-structure">
+                    <h3>Cost Structure</h3>
+                    <ul>
+                        <li><strong>Development:</strong> ~50K EGP (Flutter/Firebase, voluntary team)</li>
+                        <li><strong>Marketing/Support:</strong> ~0 EGP</li>
+                        <li><strong>Legal:</strong> ~0 EGP (deferred)</li>
+                        <li><strong>Total:</strong> <span class="highlight">~50K EGP</span> (funding/volunteering)</li>
+                        <li><strong>Worst-Case:</strong> ~20K EGP (no-code)</li>
+                    </ul>
+                </div>
+
+                <div class="bmc-section revenue-streams">
+                    <h3>Revenue Streams</h3>
+                    <ul>
+                        <li><strong>Subscriptions:</strong> Free tier; premium (500/750/1,000 EGP/month)</li>
+                        <li>10-50 trainers: <span class="highlight">60,000-300,000 EGP/year</span></li>
+                        <li>Worst-case: 4 trainers, 24,000 EGP</li>
+                        <li><strong>Add-Ons:</strong> Templates (~100 EGP one-time)</li>
+                        <li><strong>Future:</strong> Cairo gym subscriptions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lean Canvas -->
+        <div id="lean" class="canvas">
+            <h2 class="canvas-title">Lean Canvas</h2>
+            <div class="lean-grid">
+                <div class="lean-section problem">
+                    <h3>Problem</h3>
+                    <ul>
+                        <li>Manual client management (WhatsApp/Excel) disorganized</li>
+                        <li>Uncertified trainers lack affordable Arabic tools</li>
+                        <li>Inefficient scheduling limits client acquisition</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section solution">
+                    <h3>Solution</h3>
+                    <ul>
+                        <li><strong>Free Tier:</strong> Profiles, scheduling, tracking, 10 templates, 3-client limit</li>
+                        <li><strong>Premium:</strong> (500/750/1,000 EGP/month) Analytics, branding, support, API</li>
+                        <li><strong>Community:</strong> Forum, badges</li>
+                        <li><strong>MVP:</strong> Android (Oct 2025), iOS/web post-pilot</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section unique-value-prop">
+                    <h3>Unique Value Proposition</h3>
+                    <p><strong>Arabic-first platform</strong> to manage clients (3 free), save time, keep <span class="highlight">100% earnings</span>, tailored for Ismailia/Cairo trainers</p>
+                </div>
+
+                <div class="lean-section unfair-advantage">
+                    <h3>Unfair Advantage</h3>
+                    <ul>
+                        <li>Arabic-first UX</li>
+                        <li>No-commission model</li>
+                        <li>Established trainer networks</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section customer-segments-lean">
+                    <h3>Customer Segments</h3>
+                    <ul>
+                        <li><strong>Independent trainers</strong> (Ismailia, Cairo opportunistic)</li>
+                        <li>10-50 clients, 10,000-50,000 EGP/month</li>
+                        <li>500-2,000 EGP/client</li>
+                        <li><span class="highlight">~70% uncertified</span></li>
+                        <li><strong>Early Adopters:</strong> 50 trainers</li>
+                        <li><strong>Future:</strong> Cairo (150 trainers), gym owners, MENA</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section key-metrics">
+                    <h3>Key Metrics</h3>
+                    <ul>
+                        <li><strong>Acquisition:</strong> 50 trainers (worst-case: 20)</li>
+                        <li><strong>Retention:</strong> <20% churn</li>
+                        <li><strong>Conversion:</strong> 10-20% premium (5-10 trainers, worst-case: 4)</li>
+                        <li><strong>Revenue:</strong> <span class="highlight">60,000-300,000 EGP/year</span> (worst-case: 24,000 EGP)</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section channels-lean">
+                    <h3>Channels</h3>
+                    <ul>
+                        <li>Instagram/Facebook (Arabic reels)</li>
+                        <li>Trainer referrals</li>
+                        <li>ASO optimization</li>
+                        <li>Ismailia workshop</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section cost-structure-lean">
+                    <h3>Cost Structure</h3>
+                    <ul>
+                        <li><strong>Development:</strong> ~50K EGP (Flutter/Firebase, voluntary team)</li>
+                        <li><strong>Marketing/Support:</strong> ~0 EGP</li>
+                        <li><strong>Total:</strong> <span class="highlight">~50K EGP</span> (funding/volunteering)</li>
+                        <li><strong>Worst-Case:</strong> ~20K EGP (no-code)</li>
+                    </ul>
+                </div>
+
+                <div class="lean-section revenue-streams-lean">
+                    <h3>Revenue Streams</h3>
+                    <ul>
+                        <li><strong>Premium:</strong> 500/750/1,000 EGP/month</li>
+                        <li>10-50 trainers: <span class="highlight">60,000-300,000 EGP/year</span></li>
+                        <li>Worst-case: 4 trainers, 24,000 EGP</li>
+                        <li><strong>Add-Ons:</strong> Templates (~100 EGP)</li>
+                        <li><strong>Future:</strong> Gym subscriptions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showCanvas(canvasType) {
+            // Hide all canvases
+            document.querySelectorAll('.canvas').forEach(canvas => {
+                canvas.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected canvas
+            document.getElementById(canvasType).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

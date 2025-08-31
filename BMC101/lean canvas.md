@@ -1,0 +1,9 @@
+# Athletica SaaS Lean Canvas (Ismailia Pilot, 3 Months)
+
+|**Problem**|**Solution**|**Unique Value Proposition**|**Unfair Advantage**|**Customer Segments**|
+|---|---|---|---|---|
+|- Manual client management (WhatsApp/Excel) disorganized  <br>- Uncertified trainers lack affordable Arabic tools  <br>- Inefficient scheduling limits client acquisition|- Free Tier: Profiles, scheduling, tracking, 10 templates, 3-client limit  <br>- Premium (500/750/1,000 EGP/month): Analytics, branding, support, API  <br>- Community: Forum, badges  <br>- MVP: Android (Oct 2025), iOS/web post-pilot|- Arabic-first platform to manage clients (3 free), save time, keep 100% earnings, tailored for Ismailia/Cairo trainers|- Arabic-first UX, no-commission model, trainer networks|- Independent trainers (Ismailia, Cairo opportunistic): 10–50 clients, 10,000–50,000 EGP/month (500–2,000 EGP/client), ~70% uncertified  <br>- Early Adopters: 50 trainers  <br>- Future: Cairo (150 trainers), gym owners, MENA|
+
+|**Channels**|**Cost Structure**|**Revenue Streams**|**Key Metrics**|
+|---|---|---|---|
+|- Instagram/Facebook (Arabic reels), trainer referrals, ASO, Ismailia workshop|- Development: ~50K EGP (Flutter/Firebase, voluntary team)  <br>- Marketing/Support: ~0 EGP  <br>- Total: ~50K EGP (funding/volunteering)  <br>- Worst-Case: ~20K EGP (no-code)|- Premium: 500/750/1,000 EGP/month (10–50 trainers, 60,000–300,000 EGP/year; worst-case: 4 trainers, 24,000 EGP)  <br>- Add-Ons: Templates (~100 EGP)  <br>- Future: Gym subscriptions|- Acquisition: 50 trainers (worst-case: 20)  <br>- Retention: <20% churn  <br>- Conversion: 10–20% premium (5–10 trainers, worst-case: 4)  <br>- Revenue: 60,000–300,000 EGP/year (worst-case: 24,000 EGP)|
