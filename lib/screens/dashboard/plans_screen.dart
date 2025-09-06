@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:athletica/providers/coach_provider.dart';
 import 'package:athletica/models/plan.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/screens/dashboard/create_plan_screen.dart';
 
 class PlansScreen extends StatefulWidget {
   const PlansScreen({super.key});
@@ -40,7 +41,7 @@ class _PlansScreenState extends State<PlansScreen> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((plan) {
         return plan.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-               plan.description.toLowerCase().contains(_searchQuery.toLowerCase());
+            plan.description.toLowerCase().contains(_searchQuery.toLowerCase());
       }).toList();
     }
 
@@ -72,10 +73,10 @@ class _PlansScreenState extends State<PlansScreen> {
           children: [
             // Header
             _buildHeader(),
-            
+
             // Search and Filter
             _buildSearchAndFilter(),
-            
+
             // Plans List
             Expanded(
               child: Consumer<CoachProvider>(
@@ -110,11 +111,9 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to create plan screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Create plan feature coming soon'),
-              backgroundColor: AppTheme.warningOrange,
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CreatePlanScreen(),
             ),
           );
         },
@@ -132,9 +131,9 @@ class _PlansScreenState extends State<PlansScreen> {
           Text(
             'Workout Plans',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const Spacer(),
           Consumer<CoachProvider>(
@@ -142,8 +141,8 @@ class _PlansScreenState extends State<PlansScreen> {
               return Text(
                 '${coachProvider.plans.length} plans',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               );
             },
           ),
@@ -169,7 +168,8 @@ class _PlansScreenState extends State<PlansScreen> {
             decoration: InputDecoration(
               hintText: 'Search plans...',
               hintStyle: const TextStyle(color: AppTheme.textSecondary),
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
+              prefixIcon:
+                  const Icon(Icons.search, color: AppTheme.textSecondary),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -180,14 +180,15 @@ class _PlansScreenState extends State<PlansScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
               filled: true,
               fillColor: AppTheme.cardBackground,
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Filter Chips
           SizedBox(
             height: 40,
@@ -197,7 +198,7 @@ class _PlansScreenState extends State<PlansScreen> {
               itemBuilder: (context, index) {
                 final filter = _filterOptions[index];
                 final isSelected = _selectedFilter == filter;
-                
+
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
@@ -205,7 +206,8 @@ class _PlansScreenState extends State<PlansScreen> {
                       filter,
                       style: TextStyle(
                         color: isSelected ? Colors.white : AppTheme.textPrimary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                     selected: isSelected,
@@ -217,7 +219,9 @@ class _PlansScreenState extends State<PlansScreen> {
                     backgroundColor: AppTheme.cardBackground,
                     selectedColor: AppTheme.primaryBlue,
                     side: BorderSide(
-                      color: isSelected ? AppTheme.primaryBlue : AppTheme.borderColor,
+                      color: isSelected
+                          ? AppTheme.primaryBlue
+                          : AppTheme.borderColor,
                     ),
                   ),
                 );
@@ -244,14 +248,16 @@ class _PlansScreenState extends State<PlansScreen> {
           Container(
             height: 120,
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
               color: AppTheme.primaryBlue.withOpacity(0.1),
             ),
             child: Stack(
               children: [
                 if (plan.imageUrl != null)
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
                     child: Image.network(
                       plan.imageUrl!,
                       width: double.infinity,
@@ -286,7 +292,7 @@ class _PlansScreenState extends State<PlansScreen> {
               ],
             ),
           ),
-          
+
           // Plan Details
           Padding(
             padding: const EdgeInsets.all(16),
@@ -296,13 +302,13 @@ class _PlansScreenState extends State<PlansScreen> {
                 Text(
                   plan.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Plan Stats
                 Row(
                   children: [
@@ -326,20 +332,21 @@ class _PlansScreenState extends State<PlansScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Price and Actions
                 Row(
                   children: [
                     Text(
                       '${plan.price} EGP',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppTheme.primaryBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: AppTheme.primaryBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const Spacer(),
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary),
+                      icon: const Icon(Icons.more_vert,
+                          color: AppTheme.textSecondary),
                       onSelected: (value) {
                         _handlePlanAction(value, plan);
                       },
@@ -348,7 +355,8 @@ class _PlansScreenState extends State<PlansScreen> {
                           value: 'view',
                           child: Row(
                             children: [
-                              Icon(Icons.visibility, color: AppTheme.textSecondary),
+                              Icon(Icons.visibility,
+                                  color: AppTheme.textSecondary),
                               SizedBox(width: 8),
                               Text('View Details'),
                             ],
@@ -378,7 +386,8 @@ class _PlansScreenState extends State<PlansScreen> {
                           value: 'archive',
                           child: Row(
                             children: [
-                              Icon(Icons.archive, color: AppTheme.textSecondary),
+                              Icon(Icons.archive,
+                                  color: AppTheme.textSecondary),
                               SizedBox(width: 8),
                               Text('Archive'),
                             ],
@@ -390,7 +399,8 @@ class _PlansScreenState extends State<PlansScreen> {
                             children: [
                               Icon(Icons.delete, color: AppTheme.errorRed),
                               SizedBox(width: 8),
-                              Text('Delete', style: TextStyle(color: AppTheme.errorRed)),
+                              Text('Delete',
+                                  style: TextStyle(color: AppTheme.errorRed)),
                             ],
                           ),
                         ),
@@ -409,7 +419,7 @@ class _PlansScreenState extends State<PlansScreen> {
   Widget _buildStatusChip(String status) {
     Color color;
     String label;
-    
+
     switch (status.toLowerCase()) {
       case 'active':
         color = AppTheme.successGreen;
@@ -436,7 +446,7 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 12,
           fontWeight: FontWeight.bold,
@@ -462,15 +472,15 @@ class _PlansScreenState extends State<PlansScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
           ),
         ],
       ),
@@ -482,7 +492,7 @@ class _PlansScreenState extends State<PlansScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.fitness_center_outlined,
             size: 64,
             color: AppTheme.textSecondary,
@@ -491,25 +501,23 @@ class _PlansScreenState extends State<PlansScreen> {
           Text(
             'No workout plans found',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             'Start by creating your first workout plan',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Navigate to create plan screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Create plan feature coming soon'),
-                  backgroundColor: AppTheme.warningOrange,
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const CreatePlanScreen(),
                 ),
               );
             },
@@ -532,20 +540,10 @@ class _PlansScreenState extends State<PlansScreen> {
   void _handlePlanAction(String action, Plan plan) {
     switch (action) {
       case 'view':
-        // TODO: Navigate to plan details
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Viewing ${plan.name} details'),
-            backgroundColor: AppTheme.primaryBlue,
-          ),
-        );
-        break;
       case 'edit':
-        // TODO: Navigate to edit plan
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Editing ${plan.name}'),
-            backgroundColor: AppTheme.warningOrange,
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CreatePlanScreen(plan: plan),
           ),
         );
         break;
@@ -578,18 +576,18 @@ class _PlansScreenState extends State<PlansScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.cardBackground,
-        title: Text(
+        title: const Text(
           'Delete Plan',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
         content: Text(
           'Are you sure you want to delete "${plan.name}"? This action cannot be undone.',
-          style: TextStyle(color: AppTheme.textSecondary),
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
             ),

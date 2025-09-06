@@ -8,10 +8,12 @@ class IdentityVerificationScreen extends StatefulWidget {
   const IdentityVerificationScreen({super.key});
 
   @override
-  State<IdentityVerificationScreen> createState() => _IdentityVerificationScreenState();
+  State<IdentityVerificationScreen> createState() =>
+      _IdentityVerificationScreenState();
 }
 
-class _IdentityVerificationScreenState extends State<IdentityVerificationScreen> {
+class _IdentityVerificationScreenState
+    extends State<IdentityVerificationScreen> {
   File? _selectedDocument;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
@@ -62,19 +64,18 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
               ),
             ),
             const SizedBox(height: 24),
-            
             Text(
               'Upload Document',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 24),
-            
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
-              title: Text(
+              leading:
+                  const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
+              title: const Text(
                 'Take Photo',
                 style: TextStyle(color: AppTheme.textPrimary),
               ),
@@ -83,10 +84,10 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                 _pickDocument(ImageSource.camera);
               },
             ),
-            
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppTheme.primaryBlue),
-              title: Text(
+              leading:
+                  const Icon(Icons.photo_library, color: AppTheme.primaryBlue),
+              title: const Text(
                 'Choose from Gallery',
                 style: TextStyle(color: AppTheme.textPrimary),
               ),
@@ -95,7 +96,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                 _pickDocument(ImageSource.gallery);
               },
             ),
-            
             const SizedBox(height: 16),
           ],
         ),
@@ -126,7 +126,7 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
         _isLoading = false;
         _isVerified = true;
       });
-      
+
       // Show success message and navigate to main screen
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -134,7 +134,7 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
           backgroundColor: AppTheme.successGreen,
         ),
       );
-      
+
       // Navigate to main screen after a short delay
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
@@ -168,25 +168,25 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              
+
               // Header
               Text(
                 'Identity Verification',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
-              
+
               Text(
                 'Upload a government-issued ID to verify your identity',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
               const SizedBox(height: 40),
-              
+
               // Document Upload Section
               Center(
                 child: Column(
@@ -215,7 +215,7 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.upload_file,
                                     size: 48,
                                     color: AppTheme.textSecondary,
@@ -223,32 +223,36 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                                   const SizedBox(height: 8),
                                   Text(
                                     'Upload Document',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppTheme.textSecondary,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
                                   ),
                                 ],
                               ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
                     TextButton(
                       onPressed: _showDocumentSourceDialog,
                       child: Text(
-                        _selectedDocument != null ? 'Change Document' : 'Select Document',
+                        _selectedDocument != null
+                            ? 'Change Document'
+                            : 'Select Document',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: AppTheme.primaryBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Accepted Documents Section
               Container(
                 width: double.infinity,
@@ -263,7 +267,7 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.check_circle_outline,
                           color: AppTheme.successGreen,
                           size: 20,
@@ -271,15 +275,15 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                         const SizedBox(width: 8),
                         Text(
                           'Accepted Documents',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppTheme.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
                     _buildDocumentType('National ID Card'),
                     _buildDocumentType('Passport'),
                     _buildDocumentType('Driver\'s License'),
@@ -287,9 +291,9 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Security Notice
               Container(
                 width: double.infinity,
@@ -297,11 +301,12 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                 decoration: BoxDecoration(
                   color: AppTheme.primaryBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.3)),
+                  border:
+                      Border.all(color: AppTheme.primaryBlue.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.security,
                       color: AppTheme.primaryBlue,
                       size: 20,
@@ -311,23 +316,26 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                       child: Text(
                         'Your information is encrypted and secure. We only use it for verification purposes.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+                              color: AppTheme.textSecondary,
+                            ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // Submit Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading || _isVerified ? null : _submitVerification,
+                  onPressed:
+                      _isLoading || _isVerified ? null : _submitVerification,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isVerified ? AppTheme.successGreen : AppTheme.primaryBlue,
+                    backgroundColor: _isVerified
+                        ? AppTheme.successGreen
+                        : AppTheme.primaryBlue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -340,7 +348,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : _isVerified
@@ -351,41 +360,49 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                                 const SizedBox(width: 8),
                                 Text(
                                   'Verified Successfully',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ],
                             )
                           : Text(
                               'Submit for Verification',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Skip Button
               if (!_isVerified)
                 SizedBox(
                   width: double.infinity,
                   child: TextButton(
-                    onPressed: _isLoading ? null : () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => const MainScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (_) => const MainScreen(),
+                              ),
+                              (route) => false,
+                            );
+                          },
                     child: Text(
                       'Skip for now',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+                            color: AppTheme.textSecondary,
+                          ),
                     ),
                   ),
                 ),
@@ -413,8 +430,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
           Text(
             documentType,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:athletica/screens/dashboard/home_screen.dart';
 import 'package:athletica/screens/dashboard/clients_screen.dart';
 import 'package:athletica/screens/dashboard/plans_screen.dart';
+import 'package:athletica/screens/dashboard/messaging_screen.dart';
 import 'package:athletica/screens/dashboard/profile_screen.dart';
 import 'package:athletica/utils/theme.dart';
 
@@ -19,6 +20,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const ClientsScreen(),
     const PlansScreen(),
+    const MessagingScreen(),
     const ProfileScreen(),
   ];
 
@@ -28,7 +30,7 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: AppTheme.darkBackground,
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppTheme.cardBackground,
           border: Border(
             top: BorderSide(
@@ -63,6 +65,12 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 _buildNavItem(
                   index: 3,
+                  icon: Icons.message_outlined,
+                  activeIcon: Icons.message,
+                  label: 'Messages',
+                ),
+                _buildNavItem(
+                  index: 4,
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: 'Profile',
@@ -82,7 +90,7 @@ class _MainScreenState extends State<MainScreen> {
     required String label,
   }) {
     final isActive = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -92,7 +100,9 @@ class _MainScreenState extends State<MainScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppTheme.primaryBlue.withOpacity(0.1) : Colors.transparent,
+          color: isActive
+              ? AppTheme.primaryBlue.withOpacity(0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -107,9 +117,11 @@ class _MainScreenState extends State<MainScreen> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isActive ? AppTheme.primaryBlue : AppTheme.textSecondary,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
+                    color: isActive
+                        ? AppTheme.primaryBlue
+                        : AppTheme.textSecondary,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  ),
             ),
           ],
         ),

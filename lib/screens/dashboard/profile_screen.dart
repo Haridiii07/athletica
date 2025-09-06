@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/screens/dashboard/edit_profile_screen.dart';
+import 'package:athletica/screens/dashboard/subscription_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,16 +23,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               // Header
               _buildHeader(),
-              
+
               // Profile Info
               _buildProfileInfo(),
-              
+
               // Stats Section
               _buildStatsSection(),
-              
+
               // Menu Items
               _buildMenuItems(),
-              
+
               const SizedBox(height: 32),
             ],
           ),
@@ -47,18 +49,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             'Profile',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const Spacer(),
           IconButton(
             onPressed: () {
-              // TODO: Navigate to edit profile
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Edit profile feature coming soon'),
-                  backgroundColor: AppTheme.warningOrange,
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const EditProfileScreen(),
                 ),
               );
             },
@@ -76,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final coach = authProvider.coach;
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(24),
@@ -106,37 +106,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : null,
               ),
               const SizedBox(height: 16),
-              
+
               // Name and Email
               Text(
                 coach?.name ?? 'Coach Name',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 4),
-              
+
               Text(
                 coach?.email ?? 'coach@example.com',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
               const SizedBox(height: 8),
-              
+
               // Phone
               if (coach?.phone != null)
                 Text(
-                  coach!.phone!,
+                  coach!.phone,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
               const SizedBox(height: 16),
-              
+
               // Bio
-              if (coach?.bio != null && coach!.bio!.isNotEmpty)
+              if (coach?.bio != null && coach!.bio.isNotEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -145,10 +145,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    coach.bio!,
+                    coach.bio,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                          color: AppTheme.textSecondary,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -226,15 +226,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -257,11 +257,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Edit Profile',
             subtitle: 'Update your personal information',
             onTap: () {
-              // TODO: Navigate to edit profile
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Edit profile feature coming soon'),
-                  backgroundColor: AppTheme.warningOrange,
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const EditProfileScreen(),
                 ),
               );
             },
@@ -302,11 +300,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Subscription',
             subtitle: 'Manage your subscription plan',
             onTap: () {
-              // TODO: Navigate to subscription
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Subscription management coming soon'),
-                  backgroundColor: AppTheme.warningOrange,
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SubscriptionScreen(),
                 ),
               );
             },
@@ -362,7 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDestructive 
+          color: isDestructive
               ? AppTheme.errorRed.withOpacity(0.1)
               : AppTheme.primaryBlue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
@@ -376,17 +372,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: isDestructive ? AppTheme.errorRed : AppTheme.textPrimary,
-          fontWeight: FontWeight.bold,
-        ),
+              color: isDestructive ? AppTheme.errorRed : AppTheme.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
       ),
       subtitle: Text(
         subtitle,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: AppTheme.textSecondary,
-        ),
+              color: AppTheme.textSecondary,
+            ),
       ),
-      trailing: Icon(
+      trailing: const Icon(
         Icons.chevron_right,
         color: AppTheme.textSecondary,
       ),
@@ -395,7 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDivider() {
-    return Divider(
+    return const Divider(
       color: AppTheme.borderColor,
       height: 1,
       indent: 72,
@@ -408,11 +404,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.cardBackground,
-        title: Text(
+        title: const Text(
           'About Athletica',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -420,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Version 1.0.0',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Athletica is a comprehensive fitness management platform designed to help coaches manage their clients, create workout plans, and grow their business.',
               style: TextStyle(color: AppTheme.textSecondary),
@@ -430,7 +426,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'Close',
               style: TextStyle(color: AppTheme.primaryBlue),
             ),
@@ -445,18 +441,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.cardBackground,
-        title: Text(
+        title: const Text(
           'Sign Out',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
-        content: Text(
+        content: const Text(
           'Are you sure you want to sign out?',
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
@@ -480,7 +476,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _signOut() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.signOut();
-    
+
     if (mounted) {
       // Navigate to landing screen
       Navigator.of(context).pushNamedAndRemoveUntil(

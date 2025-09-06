@@ -12,7 +12,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -104,28 +105,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ),
                     ),
                     const SizedBox(height: 30),
-                    
+
                     // App Name
                     Text(
                       'Athletica',
                       style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        color: AppTheme.primaryBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: AppTheme.primaryBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 10),
-                    
+
                     // Tagline
                     Text(
                       'Guide the challenge, inspire the journey',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+                            color: AppTheme.textSecondary,
+                          ),
                     ),
                     const SizedBox(height: 50),
-                    
+
                     // Loading indicator
-                    SizedBox(
+                    const SizedBox(
                       width: 40,
                       height: 40,
                       child: CircularProgressIndicator(

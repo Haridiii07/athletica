@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:athletica/providers/coach_provider.dart';
 import 'package:athletica/models/client.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/screens/dashboard/add_client_screen.dart';
+import 'package:athletica/screens/dashboard/chat_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -40,7 +42,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((client) {
         return client.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-               client.email.toLowerCase().contains(_searchQuery.toLowerCase());
+            (client.email?.toLowerCase().contains(_searchQuery.toLowerCase()) ??
+                false);
       }).toList();
     }
 
@@ -72,10 +75,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
           children: [
             // Header
             _buildHeader(),
-            
+
             // Search and Filter
             _buildSearchAndFilter(),
-            
+
             // Client List
             Expanded(
               child: Consumer<CoachProvider>(
@@ -88,7 +91,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     );
                   }
 
-                  final filteredClients = _getFilteredClients(coachProvider.clients);
+                  final filteredClients =
+                      _getFilteredClients(coachProvider.clients);
 
                   if (filteredClients.isEmpty) {
                     return _buildEmptyState();
@@ -110,11 +114,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to add client screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Add client feature coming soon'),
-              backgroundColor: AppTheme.warningOrange,
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const AddClientScreen(),
             ),
           );
         },
@@ -132,9 +134,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
           Text(
             'Clients',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const Spacer(),
           Consumer<CoachProvider>(
@@ -142,8 +144,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
               return Text(
                 '${coachProvider.clients.length} clients',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               );
             },
           ),
@@ -169,7 +171,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
             decoration: InputDecoration(
               hintText: 'Search clients...',
               hintStyle: const TextStyle(color: AppTheme.textSecondary),
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
+              prefixIcon:
+                  const Icon(Icons.search, color: AppTheme.textSecondary),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -180,14 +183,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
               filled: true,
               fillColor: AppTheme.cardBackground,
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Filter Chips
           SizedBox(
             height: 40,
@@ -197,7 +201,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
               itemBuilder: (context, index) {
                 final filter = _filterOptions[index];
                 final isSelected = _selectedFilter == filter;
-                
+
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
@@ -205,7 +209,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       filter,
                       style: TextStyle(
                         color: isSelected ? Colors.white : AppTheme.textPrimary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                     selected: isSelected,
@@ -217,7 +222,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     backgroundColor: AppTheme.cardBackground,
                     selectedColor: AppTheme.primaryBlue,
                     side: BorderSide(
-                      color: isSelected ? AppTheme.primaryBlue : AppTheme.borderColor,
+                      color: isSelected
+                          ? AppTheme.primaryBlue
+                          : AppTheme.borderColor,
                     ),
                   ),
                 );
@@ -258,19 +265,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
         title: Text(
           client.name,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
             Text(
-              client.email,
+              client.email ?? 'No email',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+                    color: AppTheme.textSecondary,
+                  ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -280,8 +287,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 Text(
                   '${client.subscriptionProgress}% progress',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textGrey,
-                  ),
+                        color: AppTheme.textGrey,
+                      ),
                 ),
               ],
             ),
@@ -336,11 +343,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ],
         ),
         onTap: () {
-          // TODO: Navigate to client details screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Viewing ${client.name}\'s details'),
-              backgroundColor: AppTheme.primaryBlue,
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AddClientScreen(client: client),
             ),
           );
         },
@@ -351,7 +356,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Widget _buildStatusChip(String status) {
     Color color;
     String label;
-    
+
     switch (status.toLowerCase()) {
       case 'active':
         color = AppTheme.successGreen;
@@ -393,7 +398,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.people_outline,
             size: 64,
             color: AppTheme.textSecondary,
@@ -402,25 +407,23 @@ class _ClientsScreenState extends State<ClientsScreen> {
           Text(
             'No clients found',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             'Start by adding your first client',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Navigate to add client screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add client feature coming soon'),
-                  backgroundColor: AppTheme.warningOrange,
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AddClientScreen(),
                 ),
               );
             },
@@ -443,29 +446,17 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void _handleClientAction(String action, Client client) {
     switch (action) {
       case 'view':
-        // TODO: Navigate to client details
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Viewing ${client.name}\'s details'),
-            backgroundColor: AppTheme.primaryBlue,
-          ),
-        );
-        break;
       case 'edit':
-        // TODO: Navigate to edit client
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Editing ${client.name}'),
-            backgroundColor: AppTheme.warningOrange,
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AddClientScreen(client: client),
           ),
         );
         break;
       case 'message':
-        // TODO: Navigate to messaging
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Messaging ${client.name}'),
-            backgroundColor: AppTheme.primaryBlue,
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(client: client),
           ),
         );
         break;
@@ -480,18 +471,18 @@ class _ClientsScreenState extends State<ClientsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.cardBackground,
-        title: Text(
+        title: const Text(
           'Delete Client',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
         content: Text(
           'Are you sure you want to delete ${client.name}? This action cannot be undone.',
-          style: TextStyle(color: AppTheme.textSecondary),
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
             ),

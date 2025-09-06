@@ -23,8 +23,8 @@ class AppTheme {
       cardColor: cardBackground,
       
       // Text Theme
-      textTheme: GoogleFonts.cairo(
-        textTheme: const TextTheme(
+      textTheme: GoogleFonts.cairoTextTheme(
+        const TextTheme(
           displayLarge: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(

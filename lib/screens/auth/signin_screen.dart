@@ -15,7 +15,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
 
   @override
@@ -29,7 +29,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     final success = await authProvider.signIn(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -73,25 +73,25 @@ class _SignInScreenState extends State<SignInScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Header
                 Text(
                   'Welcome Back',
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 Text(
                   'Sign in to continue managing your fitness business',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Email Field
                 _buildTextField(
                   controller: _emailController,
@@ -102,14 +102,15 @@ class _SignInScreenState extends State<SignInScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Password Field
                 _buildTextField(
                   controller: _passwordController,
@@ -118,7 +119,9 @@ class _SignInScreenState extends State<SignInScreen> {
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                       color: AppTheme.textSecondary,
                     ),
                     onPressed: () {
@@ -135,7 +138,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Forgot Password
                 Align(
                   alignment: Alignment.centerRight,
@@ -152,14 +155,14 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Text(
                       'Forgot Password?',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.primaryBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: AppTheme.primaryBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Sign In Button
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
@@ -181,21 +184,25 @@ class _SignInScreenState extends State<SignInScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : Text(
                                 'Sign In',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                       ),
                     );
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Sign Up Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -203,23 +210,23 @@ class _SignInScreenState extends State<SignInScreen> {
                     Text(
                       'Don\'t have an account? ',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+                            color: AppTheme.textSecondary,
+                          ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       child: Text(
                         'Sign Up',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: AppTheme.primaryBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Divider
                 Row(
                   children: [
@@ -234,8 +241,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       child: Text(
                         'or continue with',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+                              color: AppTheme.textSecondary,
+                            ),
                       ),
                     ),
                     Expanded(
@@ -247,7 +254,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Social Login Buttons
                 Row(
                   children: [
@@ -262,8 +269,9 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.g_mobiledata, color: AppTheme.textPrimary),
-                        label: Text(
+                        icon: const Icon(Icons.g_mobiledata,
+                            color: AppTheme.textPrimary),
+                        label: const Text(
                           'Google',
                           style: TextStyle(color: AppTheme.textPrimary),
                         ),
@@ -288,8 +296,9 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.facebook, color: AppTheme.textPrimary),
-                        label: Text(
+                        icon: const Icon(Icons.facebook,
+                            color: AppTheme.textPrimary),
+                        label: const Text(
                           'Facebook',
                           style: TextStyle(color: AppTheme.textPrimary),
                         ),

@@ -40,7 +40,7 @@ class ApiService {
     'Accept': 'application/json',
   };
   
-  Map<String, String> get _authHeaders async {
+  Future<Map<String, String>> get _authHeaders async {
     final token = await authToken;
     return {
       'Content-Type': 'application/json',

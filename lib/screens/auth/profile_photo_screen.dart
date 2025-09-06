@@ -61,19 +61,18 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            
             Text(
               'Choose Photo',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 24),
-            
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
-              title: Text(
+              leading:
+                  const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
+              title: const Text(
                 'Take Photo',
                 style: TextStyle(color: AppTheme.textPrimary),
               ),
@@ -82,10 +81,10 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                 _pickImage(ImageSource.camera);
               },
             ),
-            
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppTheme.primaryBlue),
-              title: Text(
+              leading:
+                  const Icon(Icons.photo_library, color: AppTheme.primaryBlue),
+              title: const Text(
                 'Choose from Gallery',
                 style: TextStyle(color: AppTheme.textPrimary),
               ),
@@ -94,7 +93,6 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                 _pickImage(ImageSource.gallery);
               },
             ),
-            
             const SizedBox(height: 16),
           ],
         ),
@@ -124,7 +122,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => const IdentityVerificationScreen(),
@@ -152,25 +150,25 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              
+
               // Header
               Text(
                 'Add Profile Photo',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
-              
+
               Text(
                 'Help your clients recognize you with a professional photo',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
               const SizedBox(height: 40),
-              
+
               // Profile Photo Section
               Center(
                 child: Column(
@@ -199,7 +197,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.camera_alt,
                                     size: 48,
                                     color: AppTheme.textSecondary,
@@ -207,32 +205,36 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     'Add Photo',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppTheme.textSecondary,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
                                   ),
                                 ],
                               ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
                     TextButton(
                       onPressed: _showImageSourceDialog,
                       child: Text(
-                        _selectedImage != null ? 'Change Photo' : 'Select Photo',
+                        _selectedImage != null
+                            ? 'Change Photo'
+                            : 'Select Photo',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: AppTheme.primaryBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Tips Section
               Container(
                 width: double.infinity,
@@ -247,7 +249,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.lightbulb_outline,
                           color: AppTheme.warningOrange,
                           size: 20,
@@ -255,15 +257,15 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                         const SizedBox(width: 8),
                         Text(
                           'Photo Tips',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppTheme.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
                     _buildTipItem('Use good lighting'),
                     _buildTipItem('Look professional'),
                     _buildTipItem('Show your face clearly'),
@@ -271,9 +273,9 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                   ],
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // Continue Button
               SizedBox(
                 width: double.infinity,
@@ -293,36 +295,41 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(
                           'Continue',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Skip Button
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: _isLoading ? null : () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const IdentityVerificationScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const IdentityVerificationScreen(),
+                            ),
+                          );
+                        },
                   child: Text(
                     'Skip for now',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                          color: AppTheme.textSecondary,
+                        ),
                   ),
                 ),
               ),
@@ -351,8 +358,8 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
             child: Text(
               tip,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+                    color: AppTheme.textSecondary,
+                  ),
             ),
           ),
         ],

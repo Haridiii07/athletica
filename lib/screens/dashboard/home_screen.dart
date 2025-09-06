@@ -4,6 +4,8 @@ import 'package:athletica/providers/coach_provider.dart';
 import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:athletica/screens/dashboard/add_client_screen.dart';
+import 'package:athletica/screens/dashboard/create_plan_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,19 +41,19 @@ class _HomeScreenState extends State<HomeScreen> {
               // Header
               _buildHeader(),
               const SizedBox(height: 24),
-              
+
               // Quick Stats
               _buildQuickStats(),
               const SizedBox(height: 24),
-              
+
               // Revenue Chart
               _buildRevenueChart(),
               const SizedBox(height: 24),
-              
+
               // Quick Actions
               _buildQuickActions(),
               const SizedBox(height: 24),
-              
+
               // Recent Activity
               _buildRecentActivity(),
             ],
@@ -74,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   : null,
               child: authProvider.coach?.profilePhotoUrl == null
                   ? Text(
-                      authProvider.coach?.name.substring(0, 1).toUpperCase() ?? 'A',
+                      authProvider.coach?.name.substring(0, 1).toUpperCase() ??
+                          'A',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -91,15 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Welcome back,',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                          color: AppTheme.textSecondary,
+                        ),
                   ),
                   Text(
                     authProvider.coach?.name ?? 'Coach',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ],
               ),
@@ -198,16 +201,16 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
+                  color: AppTheme.textSecondary,
+                ),
           ),
         ],
       ),
@@ -231,15 +234,15 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Revenue Overview',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               TextButton(
                 onPressed: () {
                   // TODO: Navigate to detailed analytics
                 },
-                child: Text(
+                child: const Text(
                   'View All',
                   style: TextStyle(color: AppTheme.primaryBlue),
                 ),
@@ -257,13 +260,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   horizontalInterval: 1,
                   verticalInterval: 1,
                   getDrawingHorizontalLine: (value) {
-                    return FlLine(
+                    return const FlLine(
                       color: AppTheme.borderColor,
                       strokeWidth: 1,
                     );
                   },
                   getDrawingVerticalLine: (value) {
-                    return FlLine(
+                    return const FlLine(
                       color: AppTheme.borderColor,
                       strokeWidth: 1,
                     );
@@ -271,10 +274,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                   bottomTitles: AxisTitles(
@@ -403,9 +406,9 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           'Quick Actions',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -417,11 +420,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.person_add,
                 color: AppTheme.primaryBlue,
                 onTap: () {
-                  // TODO: Navigate to add client screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Add client feature coming soon'),
-                      backgroundColor: AppTheme.warningOrange,
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AddClientScreen(),
                     ),
                   );
                 },
@@ -435,11 +436,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.fitness_center,
                 color: AppTheme.successGreen,
                 onTap: () {
-                  // TODO: Navigate to create plan screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Create plan feature coming soon'),
-                      backgroundColor: AppTheme.warningOrange,
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreatePlanScreen(),
                     ),
                   );
                 },
@@ -486,16 +485,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               title,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+                    color: AppTheme.textSecondary,
+                  ),
             ),
           ],
         ),
@@ -510,9 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           'Recent Activity',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -582,16 +581,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
               ],
             ),
@@ -599,8 +598,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             time,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textGrey,
-            ),
+                  color: AppTheme.textGrey,
+                ),
           ),
         ],
       ),

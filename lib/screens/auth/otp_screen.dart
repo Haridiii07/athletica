@@ -63,7 +63,8 @@ class _OtpScreenState extends State<OtpScreen> {
   void _setupOtpListeners() {
     for (int i = 0; i < _otpControllers.length; i++) {
       _otpControllers[i].addListener(() {
-        if (_otpControllers[i].text.length == 1 && i < _otpControllers.length - 1) {
+        if (_otpControllers[i].text.length == 1 &&
+            i < _otpControllers.length - 1) {
           _focusNodes[i + 1].requestFocus();
         }
       });
@@ -72,7 +73,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> _verifyOtp() async {
     final otp = _otpControllers.map((controller) => controller.text).join();
-    
+
     if (otp.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -94,7 +95,7 @@ class _OtpScreenState extends State<OtpScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       // Navigate to profile photo screen
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -106,13 +107,13 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _resendOtp() {
     if (!_canResend) return;
-    
+
     setState(() {
       _canResend = false;
     });
-    
+
     _startResendTimer();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('OTP resent successfully'),
@@ -140,25 +141,25 @@ class _OtpScreenState extends State<OtpScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              
+
               // Header
               Text(
                 'Verify Your Phone',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
-              
+
               Text(
                 'We\'ve sent a verification code to your phone number',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
               const SizedBox(height: 40),
-              
+
               // OTP Input Fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -168,7 +169,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               // Verify Button
               SizedBox(
                 width: double.infinity,
@@ -188,19 +189,21 @@ class _OtpScreenState extends State<OtpScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(
                           'Verify OTP',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Resend OTP
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -208,8 +211,8 @@ class _OtpScreenState extends State<OtpScreen> {
                   Text(
                     'Didn\'t receive the code? ',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                          color: AppTheme.textSecondary,
+                        ),
                   ),
                   if (_canResend)
                     TextButton(
@@ -217,23 +220,23 @@ class _OtpScreenState extends State<OtpScreen> {
                       child: Text(
                         'Resend',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: AppTheme.primaryBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     )
                   else
                     Text(
                       'Resend in $_resendTimer',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textGrey,
-                      ),
+                            color: AppTheme.textGrey,
+                          ),
                     ),
                 ],
               ),
-              
+
               const Spacer(),
-              
+
               // Help Text
               Container(
                 width: double.infinity,
@@ -245,7 +248,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: AppTheme.primaryBlue,
                       size: 20,
@@ -255,8 +258,8 @@ class _OtpScreenState extends State<OtpScreen> {
                       child: Text(
                         'The verification code will expire in 5 minutes',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+                              color: AppTheme.textSecondary,
+                            ),
                       ),
                     ),
                   ],
@@ -285,9 +288,9 @@ class _OtpScreenState extends State<OtpScreen> {
         keyboardType: TextInputType.number,
         maxLength: 1,
         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          color: AppTheme.textPrimary,
-          fontWeight: FontWeight.bold,
-        ),
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
         decoration: const InputDecoration(
           counterText: '',
           border: InputBorder.none,
