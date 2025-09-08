@@ -1,0 +1,17 @@
+name: flutter_widget_preview
+description: A Flutter project to preview widgets in real time.
+publish_to: 'none' 
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  device_frame: ^0.5.0
+  flutter_preview: ^1.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - preview_assets/cover1.jpg

@@ -326,7 +326,7 @@ class _PlansScreenState extends State<PlansScreen> {
                     const SizedBox(width: 16),
                     _buildStatItem(
                       icon: Icons.trending_up,
-                      value: '${plan.successRate}%',
+                      value: plan.successRateText,
                       label: 'Success',
                     ),
                   ],

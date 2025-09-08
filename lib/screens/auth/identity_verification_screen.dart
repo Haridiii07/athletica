@@ -28,12 +28,15 @@ class _IdentityVerificationScreenState
         imageQuality: 90,
       );
 
+      if (!mounted) return;
+
       if (image != null) {
         setState(() {
           _selectedDocument = File(image.path);
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking document: $e'),
@@ -137,14 +140,13 @@ class _IdentityVerificationScreenState
 
       // Navigate to main screen after a short delay
       Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => const MainScreen(),
-            ),
-            (route) => false,
-          );
-        }
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const MainScreen(),
+          ),
+          (route) => false,
+        );
       });
     }
   }
@@ -299,10 +301,10 @@ class _IdentityVerificationScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: AppTheme.primaryBlue.withOpacity(0.3)),
+                  border: Border.all(
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [

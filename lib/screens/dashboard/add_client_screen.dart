@@ -5,6 +5,7 @@ import 'package:athletica/models/client.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:athletica/providers/auth_provider.dart';
 
 class AddClientScreen extends StatefulWidget {
   final Client? client; // For editing existing client
@@ -361,7 +362,10 @@ class _AddClientScreenState extends State<AddClientScreen> {
       final client = Client(
         id: widget.client?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId: 'coach_id', // Mock coach ID
+        coachId: Provider.of<AuthProvider>(context, listen: false)
+                .coach
+                ?.id ??
+            '',
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim().isNotEmpty

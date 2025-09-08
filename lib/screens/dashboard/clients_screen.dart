@@ -285,7 +285,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 _buildStatusChip(client.status),
                 const SizedBox(width: 8),
                 Text(
-                  '${client.subscriptionProgress}% progress',
+                  '${client.subscriptionStatus} progress',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textGrey,
                       ),

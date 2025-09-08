@@ -4,6 +4,7 @@ import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/screens/dashboard/edit_profile_screen.dart';
 import 'package:athletica/screens/dashboard/subscription_screen.dart';
+import 'package:athletica/screens/splash_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -478,9 +479,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await authProvider.signOut();
 
     if (mounted) {
-      // Navigate to landing screen
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/',
+      // Navigate to splash screen without relying on named routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const SplashScreen()),
         (route) => false,
       );
     }

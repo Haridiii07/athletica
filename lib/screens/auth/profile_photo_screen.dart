@@ -25,12 +25,15 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
         imageQuality: 80,
       );
 
+      if (!mounted) return;
+
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking image: $e'),
@@ -118,17 +121,16 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
     // Simulate image upload
     await Future.delayed(const Duration(seconds: 2));
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const IdentityVerificationScreen(),
-        ),
-      );
-    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => const IdentityVerificationScreen(),
+      ),
+    );
   }
 
   @override

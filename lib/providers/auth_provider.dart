@@ -4,7 +4,7 @@ import 'package:athletica/models/coach.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService.instance;
-  
+
   Coach? _coach;
   bool _isLoading = false;
   String? _error;
@@ -57,7 +57,7 @@ class AuthProvider extends ChangeNotifier {
         phone: phone,
         password: password,
       );
-      
+
       _coach = Coach.fromJson(response['coach']);
       _setLoading(false);
       return true;
@@ -80,7 +80,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
-      
+
       _coach = Coach.fromJson(response['coach']);
       _setLoading(false);
       return true;
@@ -134,24 +134,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _getAuthErrorMessage(String code) {
-    switch (code) {
-      case 'weak-password':
-        return 'The password provided is too weak.';
-      case 'email-already-in-use':
-        return 'An account already exists for that email.';
-      case 'user-not-found':
-        return 'No user found for that email.';
-      case 'wrong-password':
-        return 'Wrong password provided.';
-      case 'invalid-email':
-        return 'The email address is invalid.';
-      case 'user-disabled':
-        return 'This user account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many requests. Try again later.';
-      default:
-        return 'Authentication failed. Please try again.';
-    }
-  }
+  // Reserved for future use to map backend error codes to user-friendly messages
+  // String _getAuthErrorMessage(String code) { ... }
 }

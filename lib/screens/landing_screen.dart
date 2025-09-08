@@ -16,7 +16,7 @@ class LandingScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              
+
               // App Logo and Name
               Container(
                 width: 120,
@@ -26,7 +26,7 @@ class LandingScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryBlue.withOpacity(0.3),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -39,25 +39,25 @@ class LandingScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               Text(
                 'Athletica',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppTheme.primaryBlue,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: AppTheme.primaryBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
-              
+
               Text(
                 'Guide the challenge, inspire the journey',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
+
               // Features List
               _buildFeatureItem(
                 context,
@@ -66,7 +66,7 @@ class LandingScreen extends StatelessWidget {
                 subtitle: 'Track progress and keep organized',
               ),
               const SizedBox(height: 16),
-              
+
               _buildFeatureItem(
                 context,
                 icon: Icons.calendar_today,
@@ -74,7 +74,7 @@ class LandingScreen extends StatelessWidget {
                 subtitle: 'Plan sessions with ease',
               ),
               const SizedBox(height: 16),
-              
+
               _buildFeatureItem(
                 context,
                 icon: Icons.fitness_center,
@@ -82,7 +82,7 @@ class LandingScreen extends StatelessWidget {
                 subtitle: 'Create and share custom plans',
               ),
               const SizedBox(height: 16),
-              
+
               _buildFeatureItem(
                 context,
                 icon: Icons.analytics,
@@ -90,7 +90,7 @@ class LandingScreen extends StatelessWidget {
                 subtitle: 'Monitor your business growth',
               ),
               const Spacer(),
-              
+
               // Action Buttons
               SizedBox(
                 width: double.infinity,
@@ -113,13 +113,13 @@ class LandingScreen extends StatelessWidget {
                   child: Text(
                     'Get Started',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -141,8 +141,8 @@ class LandingScreen extends StatelessWidget {
                   child: Text(
                     'Sign In',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ),
@@ -173,7 +173,7 @@ class LandingScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -190,16 +190,16 @@ class LandingScreen extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
               ],
             ),

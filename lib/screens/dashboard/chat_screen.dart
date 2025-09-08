@@ -3,6 +3,8 @@ import 'package:athletica/models/client.dart';
 import 'package:athletica/models/message.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:athletica/providers/auth_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final Client client;
@@ -40,14 +42,17 @@ class _ChatScreenState extends State<ChatScreen> {
       Message(
         id: '1',
         senderId: widget.client.id,
-        receiverId: 'coach_id',
+        receiverId:
+            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+                'coach_id',
         content: 'Hello! I\'m excited to start my fitness journey with you.',
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
         isRead: true,
       ),
       Message(
         id: '2',
-        senderId: 'coach_id',
+        senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+            'coach_id',
         receiverId: widget.client.id,
         content:
             'Welcome! I\'m here to help you achieve your fitness goals. Let\'s start with a consultation.',
@@ -58,7 +63,9 @@ class _ChatScreenState extends State<ChatScreen> {
       Message(
         id: '3',
         senderId: widget.client.id,
-        receiverId: 'coach_id',
+        receiverId:
+            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+                'coach_id',
         content: 'That sounds great! When can we schedule our first session?',
         timestamp:
             DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
@@ -66,7 +73,8 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       Message(
         id: '4',
-        senderId: 'coach_id',
+        senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+            'coach_id',
         receiverId: widget.client.id,
         content:
             'How about tomorrow at 6 PM? I\'ll send you the workout plan after our session.',
@@ -76,7 +84,9 @@ class _ChatScreenState extends State<ChatScreen> {
       Message(
         id: '5',
         senderId: widget.client.id,
-        receiverId: 'coach_id',
+        receiverId:
+            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+                'coach_id',
         content: 'Perfect! I\'ll be there. Thank you for the quick response.',
         timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
         isRead: false,
@@ -176,7 +186,11 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
-                final isMe = message.senderId == 'coach_id';
+                final isMe = message.senderId ==
+                    (Provider.of<AuthProvider>(context, listen: false)
+                            .coach
+                            ?.id ??
+                        'coach_id');
                 return _buildMessageBubble(message, isMe);
               },
             ),
@@ -268,7 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           color: isMe
-                              ? Colors.white.withOpacity(0.7)
+                              ? Colors.white.withValues(alpha: 0.7)
                               : AppTheme.textGrey,
                           fontSize: 12,
                         ),
@@ -279,8 +293,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
                           color: message.isRead
-                              ? Colors.white.withOpacity(0.7)
-                              : Colors.white.withOpacity(0.5),
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : Colors.white.withValues(alpha: 0.5),
                         ),
                       ],
                     ],
@@ -355,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.send, color: AppTheme.primaryBlue),
             onPressed: _sendMessage,
             style: IconButton.styleFrom(
-              backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+              backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -369,7 +383,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final message = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: 'coach_id',
+      senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+          'coach_id',
       receiverId: widget.client.id,
       content: content,
       timestamp: DateTime.now(),
@@ -406,7 +421,9 @@ class _ChatScreenState extends State<ChatScreen> {
             final clientMessage = Message(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
               senderId: widget.client.id,
-              receiverId: 'coach_id',
+              receiverId:
+                  Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+                      'coach_id',
               content: response,
               timestamp: DateTime.now(),
               isRead: true,
@@ -534,7 +551,9 @@ class _ChatScreenState extends State<ChatScreen> {
       if (image != null) {
         final message = Message(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          senderId: 'coach_id',
+          senderId:
+              Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+                  'coach_id',
           receiverId: widget.client.id,
           content: '📷 Photo',
           timestamp: DateTime.now(),
@@ -580,7 +599,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendWorkoutPlan() {
     final message = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: 'coach_id',
+      senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
+          'coach_id',
       receiverId: widget.client.id,
       content: '💪 New workout plan shared!',
       timestamp: DateTime.now(),

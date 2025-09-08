@@ -5,6 +5,7 @@ import 'package:athletica/models/plan.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:athletica/providers/auth_provider.dart';
 
 class CreatePlanScreen extends StatefulWidget {
   final Plan? plan; // For editing existing plan
@@ -549,7 +550,8 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
 
       final plan = Plan(
         id: widget.plan?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId: 'coach_id', // Mock coach ID
+        coachId:
+            Provider.of<AuthProvider>(context, listen: false).coach?.id ?? '',
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         imageUrl: _imagePath,

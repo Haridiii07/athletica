@@ -46,8 +46,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (coach != null) {
       _nameController.text = coach.name;
       _emailController.text = coach.email;
-      _phoneController.text = coach.phone ?? '';
-      _bioController.text = coach.bio ?? '';
+      _phoneController.text = coach.phone;
+      _bioController.text = coach.bio;
       _profilePhotoPath = coach.profilePhotoUrl;
     }
   }
@@ -456,7 +456,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           settings: currentCoach.settings,
         );
 
-        // Mock update - in real app this would call the API
+        // Mock update - in real app this would call the API and update provider
+        authProvider
+          ..clearError()
+          ..updateProfile(
+            name: updatedCoach.name,
+            bio: updatedCoach.bio,
+            profilePhotoUrl: updatedCoach.profilePhotoUrl,
+          );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
