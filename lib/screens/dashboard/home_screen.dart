@@ -6,6 +6,7 @@ import 'package:athletica/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
 import 'package:athletica/screens/dashboard/create_plan_screen.dart';
+import 'package:athletica/services/deferred_navigation_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -420,11 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.person_add,
                 color: AppTheme.primaryBlue,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AddClientScreen(),
-                    ),
-                  );
+                  DeferredNavigationService.navigateToAddClient(context);
                 },
               ),
             ),
@@ -436,11 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.fitness_center,
                 color: AppTheme.successGreen,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreatePlanScreen(),
-                    ),
-                  );
+                  DeferredNavigationService.navigateToCreatePlan(context);
                 },
               ),
             ),
