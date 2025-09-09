@@ -1,0 +1,2 @@
+This file triggers the GitHub Actions deployment workflow.
+Last updated: 2024-12-19
