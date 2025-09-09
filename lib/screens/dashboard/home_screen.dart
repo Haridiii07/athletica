@@ -6,7 +6,6 @@ import 'package:athletica/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
 import 'package:athletica/screens/dashboard/create_plan_screen.dart';
-import 'package:athletica/services/deferred_navigation_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -187,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -364,8 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     isCurved: true,
                     gradient: LinearGradient(
                       colors: [
-                        AppTheme.primaryBlue.withValues(alpha: 0.8),
-                        AppTheme.primaryBlue.withValues(alpha: 0.2),
+                        AppTheme.primaryBlue.withOpacity(0.8),
+                        AppTheme.primaryBlue.withOpacity(0.2),
                       ],
                     ),
                     barWidth: 3,
@@ -385,8 +384,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          AppTheme.primaryBlue.withValues(alpha: 0.3),
-                          AppTheme.primaryBlue.withValues(alpha: 0.1),
+                          AppTheme.primaryBlue.withOpacity(0.3),
+                          AppTheme.primaryBlue.withOpacity(0.1),
                         ],
                       ),
                     ),
@@ -421,7 +420,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.person_add,
                 color: AppTheme.primaryBlue,
                 onTap: () {
-                  DeferredNavigationService.navigateToAddClient(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AddClientScreen(),
+                    ),
+                  );
                 },
               ),
             ),
@@ -433,7 +436,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.fitness_center,
                 color: AppTheme.successGreen,
                 onTap: () {
-                  DeferredNavigationService.navigateToCreatePlan(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreatePlanScreen(),
+                    ),
+                  );
                 },
               ),
             ),
@@ -465,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -557,7 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

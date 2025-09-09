@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Colors from Figma design
   static const Color primaryBlue = Color(0xFF4A67FF);
-  static const Color primaryColor = primaryBlue; // Alias for compatibility
   static const Color darkBackground = Color(0xFF121212);
   static const Color cardBackground = Color(0xFF1E1E1E);
   static const Color textPrimary = Color(0xFFFFFFFF);

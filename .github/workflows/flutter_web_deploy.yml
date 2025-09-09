@@ -1,0 +1,61 @@
+name: Flutter Web Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - run: flutter pub get
+
+      - name: Analyze Dependencies
+        run: |
+          echo "📦 Dependency Analysis:"
+          echo "======================"
+          flutter pub deps --style=compact
+          echo ""
+          echo "📊 Package count:"
+          grep -c "^\s*[a-zA-Z]" pubspec.yaml | head -1
+          echo ""
+
+      - run: flutter build web --release --web-renderer html --base-href /athletica/
+
+      - name: Analyze Bundle Size
+        run: |
+          echo "📊 Bundle Size Analysis:"
+          echo "========================"
+          find build/web -name "*.js" -exec ls -lh {} \; | head -10
+          find build/web -name "*.css" -exec ls -lh {} \;
+          du -sh build/web
+          echo ""
+          
+      - name: Analyze Assets
+        run: |
+          echo "🎨 Asset Analysis:"
+          echo "=================="
+          echo "Fonts:"
+          find build/web -name "*.woff*" -o -name "*.ttf" -o -name "*.eot" | head -5
+          echo ""
+          echo "Images:"
+          find build/web -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" -o -name "*.svg" | head -5
+          echo ""
+          echo "Asset sizes:"
+          find build/web/assets -type f -exec ls -lh {} \; 2>/dev/null | head -10 || echo "No assets found"
+          echo ""
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          force_orphan: true

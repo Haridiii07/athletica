@@ -118,11 +118,6 @@ class CoachProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createPlan(Plan plan) async {
-    // Alias for addPlan for compatibility
-    return await addPlan(plan);
-  }
-
   Future<bool> updatePlan(Plan plan) async {
     try {
       final updatedPlan = await _apiService.updatePlan(plan);

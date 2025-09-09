@@ -5,15 +5,6 @@ import 'package:athletica/screens/dashboard/plans_screen.dart';
 import 'package:athletica/screens/dashboard/messaging_screen.dart';
 import 'package:athletica/screens/dashboard/profile_screen.dart';
 import 'package:athletica/utils/theme.dart';
-import 'package:athletica/services/deferred_loading_service.dart';
-
-// Deferred imports for heavy features
-import 'package:athletica/screens/dashboard/deferred/create_plan_screen_deferred.dart' 
-    deferred as create_plan;
-import 'package:athletica/screens/dashboard/deferred/chat_screen_deferred.dart' 
-    deferred as chat;
-import 'package:athletica/screens/dashboard/deferred/subscription_screen_deferred.dart' 
-    deferred as subscription;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -110,7 +101,7 @@ class _MainScreenState extends State<MainScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? AppTheme.primaryBlue.withValues(alpha: 0.1)
+              ? AppTheme.primaryBlue.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
