@@ -20,6 +20,15 @@ jobs:
 
       - run: flutter build web --release --web-renderer html --base-href /athletica/
 
+      - name: Analyze Bundle Size
+        run: |
+          echo "📊 Bundle Size Analysis:"
+          echo "========================"
+          find build/web -name "*.js" -exec ls -lh {} \; | head -10
+          find build/web -name "*.css" -exec ls -lh {} \;
+          du -sh build/web
+          echo ""
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:

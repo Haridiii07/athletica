@@ -50,3 +50,17 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  # Bundle size optimizations
+  assets:
+    - assets/fonts/
+    - assets/images/
+  
+  # Font optimization
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Cairo-Bold.ttf
+          weight: 700
