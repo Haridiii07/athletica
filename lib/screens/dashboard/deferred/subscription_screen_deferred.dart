@@ -91,7 +91,7 @@ class _SubscriptionScreenDeferredState extends State<SubscriptionScreenDeferred>
   void initState() {
     super.initState();
     setDeferredLoading('subscription');
-    _loadDeferredFeature();
+    loadDeferredFeature();
   }
 
   @override
@@ -263,7 +263,7 @@ class _SubscriptionScreenDeferredState extends State<SubscriptionScreenDeferred>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.cardBackground,
+            color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : AppTheme.cardBackground,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected

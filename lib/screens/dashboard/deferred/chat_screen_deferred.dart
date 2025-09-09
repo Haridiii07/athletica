@@ -29,7 +29,7 @@ class _ChatScreenDeferredState extends State<ChatScreenDeferred>
   void initState() {
     super.initState();
     setDeferredLoading('chat');
-    _loadDeferredFeature();
+    loadDeferredFeature();
     _loadMessages();
   }
 
@@ -378,7 +378,7 @@ class _ChatScreenDeferredState extends State<ChatScreenDeferred>
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: AppTheme.textGrey.withOpacity(0.3 + (value * 0.7)),
+            color: AppTheme.textGrey.withValues(alpha: 0.3 + (value * 0.7)),
             shape: BoxShape.circle,
           ),
         );

@@ -296,7 +296,7 @@ class _DeferredLoadingDialogState extends State<_DeferredLoadingDialog>
             Text(
               'This may take a moment',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                   ),
             ),
           ],

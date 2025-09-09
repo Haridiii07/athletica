@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -364,8 +364,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     isCurved: true,
                     gradient: LinearGradient(
                       colors: [
-                        AppTheme.primaryBlue.withOpacity(0.8),
-                        AppTheme.primaryBlue.withOpacity(0.2),
+                        AppTheme.primaryBlue.withValues(alpha: 0.8),
+                        AppTheme.primaryBlue.withValues(alpha: 0.2),
                       ],
                     ),
                     barWidth: 3,
@@ -385,8 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          AppTheme.primaryBlue.withOpacity(0.3),
-                          AppTheme.primaryBlue.withOpacity(0.1),
+                          AppTheme.primaryBlue.withValues(alpha: 0.3),
+                          AppTheme.primaryBlue.withValues(alpha: 0.1),
                         ],
                       ),
                     ),
@@ -465,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -557,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

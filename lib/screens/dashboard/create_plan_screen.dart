@@ -348,7 +348,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
                 onPressed: _addFeature,
                 icon: const Icon(Icons.add, color: AppTheme.primaryBlue),
                 style: IconButton.styleFrom(
-                  backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                  backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
                 ),
               ),
             ],

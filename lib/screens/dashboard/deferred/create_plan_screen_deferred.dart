@@ -63,7 +63,7 @@ class _CreatePlanScreenDeferredState extends State<CreatePlanScreenDeferred>
   void initState() {
     super.initState();
     setDeferredLoading('create_plan');
-    _loadDeferredFeature();
+    loadDeferredFeature();
   }
 
   @override
