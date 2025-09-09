@@ -282,7 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           color: isMe
-                              ? Colors.white.withValues(alpha: 0.7)
+                              ? Colors.white.withOpacity(0.7)
                               : AppTheme.textGrey,
                           fontSize: 12,
                         ),
@@ -293,8 +293,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
                           color: message.isRead
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : Colors.white.withValues(alpha: 0.5),
+                              ? Colors.white.withOpacity(0.7)
+                              : Colors.white.withOpacity(0.5),
                         ),
                       ],
                     ],
@@ -369,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.send, color: AppTheme.primaryBlue),
             onPressed: _sendMessage,
             style: IconButton.styleFrom(
-              backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
+              backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
             ),
           ),
         ],

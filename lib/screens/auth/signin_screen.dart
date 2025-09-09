@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/screens/main_screen.dart';
+import 'package:athletica/screens/auth/forgot_password_screen.dart';
 import 'package:athletica/utils/theme.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -16,7 +19,61 @@ class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
+
   bool _obscurePassword = true;
+
+  /// Show error message with appropriate styling based on exception type
+  void _showErrorMessage(AuthProvider authProvider) {
+    if (!mounted) return;
+
+    String message;
+    Color backgroundColor;
+    IconData icon;
+
+    if (authProvider.isAuthError) {
+      message = authProvider.error ?? 'Authentication failed';
+      backgroundColor = AppTheme.errorRed;
+      icon = Icons.lock_outlined;
+    } else if (authProvider.isNetworkError) {
+      message = authProvider.error ?? 'Network error occurred';
+      backgroundColor = AppTheme.warningOrange;
+      icon = Icons.wifi_off_outlined;
+    } else if (authProvider.isValidationError) {
+      message = authProvider.error ?? 'Invalid input provided';
+      backgroundColor = AppTheme.errorRed;
+      icon = Icons.error_outline;
+    } else {
+      message = authProvider.error ?? 'An unexpected error occurred';
+      backgroundColor = AppTheme.errorRed;
+      icon = Icons.error_outline;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        duration: authProvider.isNetworkError
+            ? const Duration(seconds: 5)
+            : const Duration(seconds: 3),
+        action: authProvider.isNetworkError
+            ? SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _signIn(),
+              )
+            : null,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -37,18 +94,143 @@ class _SignInScreenState extends State<SignInScreen> {
 
     if (success && mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const MainScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
         (route) => false,
       );
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Sign in failed'),
-          backgroundColor: AppTheme.errorRed,
-        ),
+      _showErrorMessage(authProvider);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User canceled the sign-in
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      if (googleAuth.accessToken == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to get Google authentication token'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
+        return;
+      }
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final success = await authProvider.signInWithGoogle(
+        googleToken: googleAuth.accessToken!,
+        name: googleUser.displayName,
+        email: googleUser.email,
+        profilePhotoUrl: googleUser.photoUrl,
       );
+
+      if (success && mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully signed in with Google!'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+      } else if (mounted) {
+        _showErrorMessage(authProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google sign in error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      if (result.status != LoginStatus.success) {
+        if (mounted) {
+          String errorMessage = 'Facebook sign in was canceled';
+          if (result.status == LoginStatus.failed) {
+            errorMessage = 'Facebook sign in failed: ${result.message}';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
+        return;
+      }
+
+      final AccessToken? accessToken = result.accessToken;
+      if (accessToken == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to get Facebook access token'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get user data from Facebook
+      final userData = await FacebookAuth.instance.getUserData();
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final success = await authProvider.signInWithFacebook(
+        facebookToken: accessToken.tokenString,
+        name: userData['name'] as String?,
+        email: userData['email'] as String?,
+        profilePhotoUrl: userData['picture']?['data']?['url'] as String?,
+      );
+
+      if (success && mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully signed in with Facebook!'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+      } else if (mounted) {
+        _showErrorMessage(authProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Facebook sign in error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
     }
   }
 
@@ -102,8 +284,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -144,11 +327,9 @@ class _SignInScreenState extends State<SignInScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // TODO: Implement forgot password
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Forgot password feature coming soon'),
-                          backgroundColor: AppTheme.warningOrange,
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ForgotPasswordScreen(),
                         ),
                       );
                     },
@@ -185,7 +366,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : Text(
@@ -193,9 +375,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                       ),
                     );
@@ -231,10 +411,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 1,
-                        color: AppTheme.borderColor,
-                      ),
+                      child: Container(height: 1, color: AppTheme.borderColor),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -246,10 +423,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Container(
-                        height: 1,
-                        color: AppTheme.borderColor,
-                      ),
+                      child: Container(height: 1, color: AppTheme.borderColor),
                     ),
                   ],
                 ),
@@ -260,17 +434,11 @@ class _SignInScreenState extends State<SignInScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Google sign in
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Google sign in coming soon'),
-                              backgroundColor: AppTheme.warningOrange,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.g_mobiledata,
-                            color: AppTheme.textPrimary),
+                        onPressed: _signInWithGoogle,
+                        icon: const Icon(
+                          Icons.g_mobiledata,
+                          color: AppTheme.textPrimary,
+                        ),
                         label: const Text(
                           'Google',
                           style: TextStyle(color: AppTheme.textPrimary),
@@ -287,17 +455,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Facebook sign in
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Facebook sign in coming soon'),
-                              backgroundColor: AppTheme.warningOrange,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.facebook,
-                            color: AppTheme.textPrimary),
+                        onPressed: _signInWithFacebook,
+                        icon: const Icon(
+                          Icons.facebook,
+                          color: AppTheme.textPrimary,
+                        ),
                         label: const Text(
                           'Facebook',
                           style: TextStyle(color: AppTheme.textPrimary),

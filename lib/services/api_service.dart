@@ -1,54 +1,95 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:athletica/config/app_config.dart';
 import 'package:athletica/models/coach.dart';
 import 'package:athletica/models/client.dart';
 import 'package:athletica/models/plan.dart';
+import 'package:athletica/utils/exceptions.dart';
 
 class ApiService {
   static const String authTokenKey = 'auth_token';
-  
+
   static ApiService? _instance;
   static ApiService get instance => _instance ??= ApiService._();
-  
-  ApiService._();
-  
+
+  late final Dio _dio;
   String? _authToken;
-  
+
+  ApiService._() {
+    _dio = Dio(BaseOptions(
+      baseUrl: AppConfig.baseUrl,
+      connectTimeout: AppConfig.connectionTimeout,
+      receiveTimeout: AppConfig.receiveTimeout,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ));
+
+    // Add interceptors
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Add auth token to requests if available
+        final token = await authToken;
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        handler.next(options);
+      },
+      onError: (error, handler) {
+        // Handle common errors
+        if (error.response?.statusCode == 401) {
+          // Clear invalid token
+          clearAuthToken();
+        }
+        handler.next(error);
+      },
+    ));
+  }
+
+  /// Helper method to handle DioExceptions and convert them to custom exceptions
+  AppException _handleDioException(DioException e, [String? endpoint]) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return NetworkException.timeout();
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return NetworkException.noConnection();
+    }
+    if (e.response != null) {
+      return ExceptionMapper.mapFromResponse(
+        e.response!.statusCode ?? 500,
+        e.response!.data,
+        endpoint: endpoint,
+      );
+    }
+    return NetworkException(
+      message:
+          'Network error occurred. Please check your connection and try again.',
+      code: 'NETWORK_ERROR',
+      details: e.message,
+    );
+  }
+
   Future<String?> get authToken async {
     if (_authToken != null) return _authToken;
     final prefs = await SharedPreferences.getInstance();
     _authToken = prefs.getString(authTokenKey);
     return _authToken;
   }
-  
+
   Future<void> setAuthToken(String token) async {
     _authToken = token;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(authTokenKey, token);
   }
-  
+
   Future<void> clearAuthToken() async {
     _authToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(authTokenKey);
   }
-  
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-  
-  Future<Map<String, String>> get _authHeaders async {
-    final token = await authToken;
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
-  
+
   // Authentication endpoints
   Future<Map<String, dynamic>> signUp({
     required String name,
@@ -56,232 +97,255 @@ class ApiService {
     required String phone,
     required String password,
   }) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.authSignUp}'),
-      headers: _headers,
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'password': password,
-      }),
-    );
-    
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
+    try {
+      final response = await _dio.post(
+        AppConfig.authSignUp,
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
       await setAuthToken(data['token']);
       return data;
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Sign up failed');
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authSignUp);
     }
   }
-  
+
   Future<Map<String, dynamic>> signIn({
     required String email,
     required String password,
   }) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.authSignIn}'),
-      headers: _headers,
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+    try {
+      final response = await _dio.post(
+        AppConfig.authSignIn,
+        data: {'email': email, 'password': password},
+      );
+
+      final data = response.data as Map<String, dynamic>;
       await setAuthToken(data['token']);
       return data;
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Sign in failed');
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authSignIn);
     }
   }
-  
+
   Future<void> signOut() async {
     try {
-      final headers = await _authHeaders;
-      await http.post(
-        Uri.parse('${AppConfig.baseUrl}${AppConfig.authSignOut}'),
-        headers: headers,
-      );
+      await _dio.post(AppConfig.authSignOut);
+    } on DioException {
+      // Log the error but continue with token cleanup
+      // Don't throw here as we want to clear the token regardless
     } finally {
       await clearAuthToken();
     }
   }
-  
-  // Coach endpoints
-  Future<Coach> getCoachProfile() async {
-    final headers = await _authHeaders;
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.coachProfile}'),
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return Coach.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load profile');
+
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    try {
+      final response = await _dio.post(
+        AppConfig.authForgotPassword,
+        data: {'email': email},
+      );
+
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authForgotPassword);
     }
   }
-  
+
+  Future<Map<String, dynamic>> signInWithGoogle({
+    required String googleToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConfig.authGoogleSignIn,
+        data: {
+          'googleToken': googleToken,
+          if (name != null) 'name': name,
+          if (email != null) 'email': email,
+          if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      await setAuthToken(data['token']);
+      return data;
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authGoogleSignIn);
+    }
+  }
+
+  Future<Map<String, dynamic>> signInWithFacebook({
+    required String facebookToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConfig.authFacebookSignIn,
+        data: {
+          'facebookToken': facebookToken,
+          if (name != null) 'name': name,
+          if (email != null) 'email': email,
+          if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      await setAuthToken(data['token']);
+      return data;
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authFacebookSignIn);
+    }
+  }
+
+  // Coach endpoints
+  Future<Coach> getCoachProfile() async {
+    try {
+      final response = await _dio.get(AppConfig.coachProfile);
+      return Coach.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.coachProfile);
+    }
+  }
+
   Future<Coach> updateCoachProfile({
     String? name,
     String? bio,
     String? profilePhotoUrl,
   }) async {
-    final headers = await _authHeaders;
-    final response = await http.put(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.coachProfile}'),
-      headers: headers,
-      body: jsonEncode({
-        if (name != null) 'name': name,
-        if (bio != null) 'bio': bio,
-        if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return Coach.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update profile');
+    try {
+      final response = await _dio.put(
+        AppConfig.coachProfile,
+        data: {
+          if (name != null) 'name': name,
+          if (bio != null) 'bio': bio,
+          if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+        },
+      );
+
+      return Coach.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.coachProfile);
     }
   }
-  
+
   // Client endpoints
   Future<List<Client>> getClients() async {
-    final headers = await _authHeaders;
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.clients}'),
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data as List).map((json) => Client.fromJson(json)).toList();
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load clients');
+    try {
+      final response = await _dio.get(AppConfig.clients);
+      final data = response.data as List;
+      return data
+          .map((json) => Client.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.clients);
     }
   }
-  
+
   Future<Client> addClient(Client client) async {
-    final headers = await _authHeaders;
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.clients}'),
-      headers: headers,
-      body: jsonEncode(client.toJson()),
-    );
-    
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return Client.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to add client');
+    try {
+      final response = await _dio.post(
+        AppConfig.clients,
+        data: client.toJson(),
+      );
+
+      return Client.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.clients);
     }
   }
-  
+
   Future<Client> updateClient(Client client) async {
-    final headers = await _authHeaders;
-    final response = await http.put(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.clients}/${client.id}'),
-      headers: headers,
-      body: jsonEncode(client.toJson()),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return Client.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update client');
+    try {
+      final response = await _dio.put(
+        '${AppConfig.clients}/${client.id}',
+        data: client.toJson(),
+      );
+
+      return Client.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, '${AppConfig.clients}/${client.id}');
     }
   }
-  
+
   Future<void> deleteClient(String clientId) async {
-    final headers = await _authHeaders;
-    final response = await http.delete(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.clients}/$clientId'),
-      headers: headers,
-    );
-    
-    if (response.statusCode != 204) {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to delete client');
+    try {
+      await _dio.delete('${AppConfig.clients}/$clientId');
+    } on DioException catch (e) {
+      // For delete operations, 204 No Content is expected
+      if (e.response?.statusCode != 204) {
+        throw _handleDioException(e, '${AppConfig.clients}/$clientId');
+      }
     }
   }
-  
+
   // Plan endpoints
   Future<List<Plan>> getPlans() async {
-    final headers = await _authHeaders;
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.plans}'),
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data as List).map((json) => Plan.fromJson(json)).toList();
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load plans');
+    try {
+      final response = await _dio.get(AppConfig.plans);
+      final data = response.data as List;
+      return data
+          .map((json) => Plan.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.plans);
     }
   }
-  
+
   Future<Plan> addPlan(Plan plan) async {
-    final headers = await _authHeaders;
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.plans}'),
-      headers: headers,
-      body: jsonEncode(plan.toJson()),
-    );
-    
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return Plan.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to add plan');
+    try {
+      final response = await _dio.post(
+        AppConfig.plans,
+        data: plan.toJson(),
+      );
+
+      return Plan.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.plans);
     }
   }
-  
+
   Future<Plan> updatePlan(Plan plan) async {
-    final headers = await _authHeaders;
-    final response = await http.put(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.plans}/${plan.id}'),
-      headers: headers,
-      body: jsonEncode(plan.toJson()),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return Plan.fromJson(data);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update plan');
+    try {
+      final response = await _dio.put(
+        '${AppConfig.plans}/${plan.id}',
+        data: plan.toJson(),
+      );
+
+      return Plan.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioException(e, '${AppConfig.plans}/${plan.id}');
     }
   }
-  
+
   Future<void> deletePlan(String planId) async {
-    final headers = await _authHeaders;
-    final response = await http.delete(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.plans}/$planId'),
-      headers: headers,
-    );
-    
-    if (response.statusCode != 204) {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to delete plan');
+    try {
+      await _dio.delete('${AppConfig.plans}/$planId');
+    } on DioException catch (e) {
+      // For delete operations, 204 No Content is expected
+      if (e.response?.statusCode != 204) {
+        throw _handleDioException(e, '${AppConfig.plans}/$planId');
+      }
     }
   }
-  
+
   // Analytics endpoints
   Future<Map<String, dynamic>> getDashboardStats() async {
-    final headers = await _authHeaders;
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.analytics}'),
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load dashboard stats');
+    try {
+      final response = await _dio.get(AppConfig.analytics);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.analytics);
     }
   }
 }

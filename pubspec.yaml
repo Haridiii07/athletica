@@ -31,8 +31,11 @@ dependencies:
   uuid: ^4.2.1
   
   # HTTP and API
-  http: ^1.1.0
   dio: ^5.4.0
+  
+  # Authentication
+  google_sign_in: ^6.1.6
+  flutter_facebook_auth: ^7.1.1
   
   # Local Storage
   hive: ^2.2.3

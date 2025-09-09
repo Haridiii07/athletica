@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:athletica/services/api_service.dart';
 import 'package:athletica/models/coach.dart';
+import 'package:athletica/utils/exceptions.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService.instance;
@@ -8,12 +9,23 @@ class AuthProvider extends ChangeNotifier {
   Coach? _coach;
   bool _isLoading = false;
   String? _error;
+  AppException? _lastException;
 
   Coach? get coach => _coach;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  AppException? get lastException => _lastException;
   bool get isAuthenticated => _coach != null;
   bool get isCoachLoaded => _coach != null;
+
+  /// Check if the last error was due to authentication issues
+  bool get isAuthError => _lastException is AuthException;
+
+  /// Check if the last error was due to network issues
+  bool get isNetworkError => _lastException is NetworkException;
+
+  /// Check if the last error was due to validation issues
+  bool get isValidationError => _lastException is ValidationException;
 
   AuthProvider() {
     _checkAuthState();
@@ -36,8 +48,7 @@ class AuthProvider extends ChangeNotifier {
       _coach = await _apiService.getCoachProfile();
       notifyListeners();
     } catch (e) {
-      _error = 'Failed to load coach data: $e';
-      notifyListeners();
+      _handleException(e as Exception);
     }
   }
 
@@ -49,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _error = null;
+    _lastException = null;
 
     try {
       final response = await _apiService.signUp(
@@ -62,18 +74,16 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _error = e.toString();
+      _handleException(e as Exception);
       _setLoading(false);
       return false;
     }
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     _setLoading(true);
     _error = null;
+    _lastException = null;
 
     try {
       final response = await _apiService.signIn(
@@ -85,7 +95,7 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _error = e.toString();
+      _handleException(e as Exception);
       _setLoading(false);
       return false;
     }
@@ -97,9 +107,81 @@ class AuthProvider extends ChangeNotifier {
       await _apiService.signOut();
       _coach = null;
     } catch (e) {
-      _error = 'Failed to sign out: $e';
+      _handleException(e as Exception);
     }
     _setLoading(false);
+  }
+
+  Future<bool> forgotPassword({required String email}) async {
+    _setLoading(true);
+    _error = null;
+    _lastException = null;
+
+    try {
+      await _apiService.forgotPassword(email: email);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _handleException(e as Exception);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> signInWithGoogle({
+    required String googleToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    _setLoading(true);
+    _error = null;
+    _lastException = null;
+
+    try {
+      final response = await _apiService.signInWithGoogle(
+        googleToken: googleToken,
+        name: name,
+        email: email,
+        profilePhotoUrl: profilePhotoUrl,
+      );
+
+      _coach = Coach.fromJson(response['coach']);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _handleException(e as Exception);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> signInWithFacebook({
+    required String facebookToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    _setLoading(true);
+    _error = null;
+    _lastException = null;
+
+    try {
+      final response = await _apiService.signInWithFacebook(
+        facebookToken: facebookToken,
+        name: name,
+        email: email,
+        profilePhotoUrl: profilePhotoUrl,
+      );
+
+      _coach = Coach.fromJson(response['coach']);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _handleException(e as Exception);
+      _setLoading(false);
+      return false;
+    }
   }
 
   Future<bool> updateProfile({
@@ -118,8 +200,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Failed to update profile: $e';
-      notifyListeners();
+      _handleException(e as Exception);
       return false;
     }
   }
@@ -131,9 +212,19 @@ class AuthProvider extends ChangeNotifier {
 
   void clearError() {
     _error = null;
+    _lastException = null;
     notifyListeners();
   }
 
-  // Reserved for future use to map backend error codes to user-friendly messages
-  // String _getAuthErrorMessage(String code) { ... }
+  /// Helper method to handle exceptions and set error state
+  void _handleException(Exception e) {
+    if (e is AppException) {
+      _lastException = e;
+      _error = e.message;
+    } else {
+      _lastException = null;
+      _error = e.toString();
+    }
+    notifyListeners();
+  }
 }
