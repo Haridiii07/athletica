@@ -97,10 +97,10 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: const CardTheme(
+      cardTheme: CardThemeData(
         color: cardBackground,
         elevation: 0,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           side: BorderSide(color: borderColor, width: 1),
         ),
