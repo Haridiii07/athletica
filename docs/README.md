@@ -1,21 +1,20 @@
-# 🏋️ Athletica - Arabic-First Fitness Trainer SaaS Platform
+# 🏋️ Athletica - Fitness Trainer Platform
 
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
 [![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev/)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-Private-red.svg?style=for-the-badge)]()
 
-> **Arabic-first SaaS platform for independent fitness trainers in Egypt** - Manage clients, schedules, and workouts with 100% earnings (no commissions)
+> **Private Flutter project** - Cross-platform fitness trainer management app
 
 ## 🎯 **Project Overview**
 
-Athletica is a comprehensive Flutter-based SaaS platform designed specifically for fitness trainers in Egypt. The platform provides Arabic-first tools for client management, workout planning, and business analytics, helping trainers transition from manual WhatsApp/Excel methods to a professional digital solution.
+Athletica is a Flutter-based platform for fitness trainers with Arabic-first UI and comprehensive client management features.
 
 ### **Key Features**
-- 🔐 **Multi-Platform Authentication** (Email/Password, Google, Facebook, Apple)
-- 👥 **Client Management** with progress tracking and analytics
-- 📅 **Smart Scheduling** with Ramadan-adjusted time slots
-- 💪 **Workout Templates** in Arabic (10+ templates included)
+- 🔐 **Multi-Platform Authentication** (Email/Password, Google, Facebook)
+- 👥 **Client Management** with progress tracking
+- 📅 **Smart Scheduling** system
+- 💪 **Workout Templates** in Arabic
 - 💬 **In-App Messaging** between trainers and clients
 - 📊 **Business Analytics** and revenue tracking
 - 🎨 **Arabic-First UI** with RTL support
@@ -54,15 +53,13 @@ Athletica is a comprehensive Flutter-based SaaS platform designed specifically f
    flutter run -d ios
    ```
 
-### **🌐 Live Demo**
+### **🌐 Team Access**
 **Web App**: [https://haridiii07.github.io/athletica/](https://haridiii07.github.io/athletica/)
 
-### **📱 Mobile App**
-Download the Android APK from the [Releases](https://github.com/Haridiii07/athletica/releases) section.
-
-## 📱 **Screenshots**
-
-*Screenshots will be added soon*
+### **📱 Mobile Testing**
+- **Android**: Build APK locally or use `flutter run -d android`
+- **iOS**: Use `flutter run -d ios` (Mac required)
+- **Web**: Use `flutter run -d chrome`
 
 ## 🏗️ **Architecture**
 
@@ -142,18 +139,12 @@ lib/
 - **Arabic Font**: Cairo (Google Fonts)
 - **English Font**: Inter (Google Fonts)
 
-## 📊 **Business Model**
+## 🔧 **Development Setup**
 
-### **Target Market**
-- Independent fitness trainers in Egypt
-- 10-50 clients per trainer
-- 10,000-50,000 EGP/month income
-- ~70% uncertified trainers
-
-### **Revenue Model**
-- **Free Tier**: 3 clients, basic features
-- **Premium Tiers**: 500/750/1,000 EGP/month
-- **No Commission Model**: 100% earnings for trainers
+### **Environment Configuration**
+- Update `lib/config/app_config.dart` with your backend URL
+- Set `useMockApi = true` for frontend testing without backend
+- Configure authentication endpoints as needed
 
 ## 🧪 **Testing**
 
@@ -200,63 +191,24 @@ flutter build macos --release
 flutter build linux --release
 ```
 
-## 🚀 **Deployment Options**
+## 🚀 **Deployment**
 
-### **1. Web Deployment (Free)**
+### **Web Deployment**
 - **GitHub Pages**: Automatic deployment from main branch
-- **Netlify**: Connect GitHub repo for auto-deploy
-- **Vercel**: Connect GitHub repo for auto-deploy
+- **Manual**: Run `flutter build web --release` and deploy `build/web/`
 
-### **2. Mobile Distribution**
-- **Android**: APK file sharing, Google Play Store
-- **iOS**: TestFlight, App Store
+### **Mobile Builds**
+- **Android**: `flutter build apk --release`
+- **iOS**: `flutter build ios --release` (Mac required)
 
-### **3. Desktop Distribution**
-- **Windows**: Direct executable sharing
-- **macOS**: App Store, direct distribution
-- **Linux**: Package managers, direct distribution
-
-**📖 Detailed deployment guide**: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
-
-## 🤝 **Contributing**
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### **Development Workflow**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**📖 Detailed deployment guide**: [docs/deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)
 
 ## 📄 **Documentation**
 
-- [Backend Integration Guide](BACKEND_INTEGRATION.md)
-- [Firebase Setup Guide](FIREBASE_SETUP.md)
-- [Custom Exception Handling](CUSTOM_EXCEPTION_HANDLING_DOCUMENTATION.md)
-- [Dio HTTP Client Refactoring](DIO_REFACTORING_DOCUMENTATION.md)
-- [Google Sign-In Integration](GOOGLE_SIGNIN_INTEGRATION.md)
-- [Facebook Sign-In Integration](FACEBOOK_SIGNIN_INTEGRATION.md)
-
-## 📈 **Roadmap**
-
-### **Phase 1: MVP (Current)**
-- [x] Authentication system
-- [x] Basic UI framework
-- [x] API integration
-- [ ] Core dashboard features
-
-### **Phase 2: Core Features**
-- [ ] Client management
-- [ ] Workout planning
-- [ ] Scheduling system
-- [ ] Messaging platform
-
-### **Phase 3: Advanced Features**
-- [ ] Analytics dashboard
-- [ ] Payment integration
-- [ ] Mobile app stores
-- [ ] Multi-language support
+- [Backend Integration Guide](api/BACKEND_INTEGRATION.md)
+- [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)
+- [Development Setup](development/)
+- [Project Structure](../PROJECT_STRUCTURE.md)
 
 ## 🐛 **Known Issues**
 
@@ -264,25 +216,11 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Some dashboard screens are placeholder
 - Offline mode needs enhancement
 
-## 📞 **Support**
+## 📞 **Team Support**
 
-- **Email**: support@athletica.app
 - **Issues**: [GitHub Issues](https://github.com/Haridiii07/athletica/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Haridiii07/athletica/discussions)
 
-## 📜 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- Flutter team for the amazing framework
-- Firebase for backend services
-- Google Fonts for Arabic typography
-- Open source community for inspiration
-
 ---
 
-**Made with ❤️ for Egyptian fitness trainers**
-
-*Building the future of fitness training in Egypt, one trainer at a time.*
+**Private Flutter Project - Team Development**
