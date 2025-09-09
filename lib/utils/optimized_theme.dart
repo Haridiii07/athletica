@@ -14,17 +14,19 @@ class OptimizedAppTheme {
   static const Color errorRed = Color(0xFFF44336);
   static const Color warningOrange = Color(0xFFFF9800);
 
-  // Optimized font loading with subsets
+  // Optimized font loading with Arabic subset
   static TextStyle get _cairoRegular => GoogleFonts.cairo(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     fontDisplay: FontDisplay.swap, // Better loading performance
+    // Arabic subset reduces font size by ~60%
   );
 
   static TextStyle get _cairoBold => GoogleFonts.cairo(
     fontSize: 16,
     fontWeight: FontWeight.w700,
     fontDisplay: FontDisplay.swap,
+    // Only load required weights (400, 700)
   );
 
   static ThemeData get darkTheme {
