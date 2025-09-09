@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:athletica/services/api_service.dart';
+import 'package:athletica/services/mock_api_service.dart';
 import 'package:athletica/models/coach.dart';
 import 'package:athletica/utils/exceptions.dart';
+import 'package:athletica/config/app_config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService.instance;
+  final dynamic _apiService =
+      AppConfig.useMockApi ? MockApiService.instance : ApiService.instance;
 
   Coach? _coach;
   bool _isLoading = false;

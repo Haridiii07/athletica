@@ -1,252 +1,469 @@
-# Backend Integration Guide for Athletica
+# 🔧 Backend Integration Guide
 
-## Overview
+## 📋 **Overview**
 
-The Athletica Flutter app has been updated to work with your Node.js backend instead of Firebase directly. This provides better control over the API and allows for custom business logic.
+This guide explains how to integrate your backend with the Athletica Flutter app. The app is currently configured to use a mock API service for frontend testing, but can easily be switched to use a real backend.
 
-## Backend Repository
+## 🔄 **Switching to Real Backend**
 
-Your backend is available at: [https://github.com/youssef3092004/Athletica](https://github.com/youssef3092004/Athletica)
+### **Step 1: Update Configuration**
+In `lib/config/app_config.dart`:
+```dart
+// Change this line:
+static const bool useMockApi = true;
 
-## Setup Instructions
+// To:
+static const bool useMockApi = false;
+```
 
-### 1. Backend Setup
+### **Step 2: Update Backend URL**
+```dart
+// For development:
+static const String baseUrl = 'http://localhost:3000/api';
 
-1. **Clone the backend repository:**
-   ```bash
-   git clone https://github.com/youssef3092004/Athletica
-   cd Athletica
-   ```
+// For production:
+static const String baseUrl = 'https://your-backend-domain.com/api';
+```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## 🛠 **Required API Endpoints**
 
-3. **Set up environment variables:**
-   Create a `.env` file in the backend root:
-   ```env
-   PORT=3000
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret_key
-   NODE_ENV=development
-   ```
+Your backend must implement these endpoints:
 
-4. **Start the backend server:**
-   ```bash
-   npm start
-   # or for development
-   npm run dev
-   ```
+### **Authentication Endpoints**
 
-### 2. Flutter App Configuration
+#### **1. User Registration**
+```
+POST /api/auth/signup
+Content-Type: application/json
 
-1. **Update backend URL:**
-   Edit `lib/config/app_config.dart`:
-   ```dart
-   static const String baseUrl = 'http://localhost:3000/api';
-   ```
-
-2. **For production deployment:**
-   ```dart
-   static const String baseUrl = 'https://your-backend-domain.com/api';
-   ```
-
-### 3. API Endpoints
-
-The Flutter app expects these endpoints from your backend:
-
-#### Authentication
-- `POST /api/auth/signup` - Register new coach
-- `POST /api/auth/signin` - Login coach
-- `POST /api/auth/signout` - Logout coach
-
-#### Coach Management
-- `GET /api/coaches/profile` - Get coach profile
-- `PUT /api/coaches/profile` - Update coach profile
-
-#### Client Management
-- `GET /api/clients` - Get all clients for coach
-- `POST /api/clients` - Add new client
-- `PUT /api/clients/:id` - Update client
-- `DELETE /api/clients/:id` - Delete client
-
-#### Plan Management
-- `GET /api/plans` - Get all plans for coach
-- `POST /api/plans` - Add new plan
-- `PUT /api/plans/:id` - Update plan
-- `DELETE /api/plans/:id` - Delete plan
-
-#### Analytics
-- `GET /api/analytics/dashboard` - Get dashboard statistics
-
-### 4. Data Models
-
-The Flutter app uses these data models that should match your backend:
-
-#### Coach Model
-```json
 {
-  "id": "string",
   "name": "string",
   "email": "string",
   "phone": "string",
-  "profilePhotoUrl": "string?",
-  "bio": "string",
-  "certificates": ["string"],
-  "subscriptionTier": "free|basic|pro|elite",
-  "clientLimit": 3,
-  "createdAt": "ISO8601 string",
-  "lastActive": "ISO8601 string?",
-  "settings": {}
+  "password": "string"
+}
+
+Response:
+{
+  "token": "jwt_token",
+  "coach": {
+    "id": "string",
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "bio": "string",
+    "certificates": ["string"],
+    "subscriptionTier": "string",
+    "clientLimit": number,
+    "createdAt": "ISO_date",
+    "lastActive": "ISO_date"
+  }
 }
 ```
 
-#### Client Model
-```json
+#### **2. User Login**
+```
+POST /api/auth/signin
+Content-Type: application/json
+
 {
-  "id": "string",
-  "coachId": "string",
+  "email": "string",
+  "password": "string"
+}
+
+Response: Same as signup
+```
+
+#### **3. User Logout**
+```
+POST /api/auth/signout
+Authorization: Bearer <token>
+
+Response: { "message": "Logged out successfully" }
+```
+
+#### **4. Forgot Password**
+```
+POST /api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "string"
+}
+
+Response: { "message": "Password reset email sent" }
+```
+
+#### **5. Google Sign-In**
+```
+POST /api/auth/google-signin
+Content-Type: application/json
+
+{
+  "googleToken": "string",
   "name": "string",
-  "profilePhotoUrl": "string?",
-  "status": "active|inactive|pending",
-  "subscriptionProgress": 0.0,
-  "joinedAt": "ISO8601 string",
-  "lastSession": "ISO8601 string?",
-  "goals": {},
-  "stats": {},
-  "sessionHistory": [],
-  "phone": "string?",
-  "email": "string?"
+  "email": "string",
+  "profilePhotoUrl": "string"
 }
+
+Response: Same as signup
 ```
 
-#### Plan Model
-```json
+#### **6. Facebook Sign-In**
+```
+POST /api/auth/facebook-signin
+Content-Type: application/json
+
 {
-  "id": "string",
-  "coachId": "string",
+  "facebookToken": "string",
+  "name": "string",
+  "email": "string",
+  "profilePhotoUrl": "string"
+}
+
+Response: Same as signup
+```
+
+#### **7. Apple Sign-In**
+```
+POST /api/auth/apple-signin
+Content-Type: application/json
+
+{
+  "appleToken": "string",
+  "name": "string",
+  "email": "string"
+}
+
+Response: Same as signup
+```
+
+### **Coach Management Endpoints**
+
+#### **8. Get Coach Profile**
+```
+GET /api/coaches/profile
+Authorization: Bearer <token>
+
+Response: Coach object (same as signup response)
+```
+
+#### **9. Update Coach Profile**
+```
+PUT /api/coaches/profile
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "string",
+  "bio": "string",
+  "profilePhotoUrl": "string"
+}
+
+Response: Updated coach object
+```
+
+### **Client Management Endpoints**
+
+#### **10. Get All Clients**
+```
+GET /api/clients
+Authorization: Bearer <token>
+
+Response:
+[
+  {
+    "id": "string",
+    "coachId": "string",
+    "name": "string",
+    "status": "active|pending|inactive",
+    "subscriptionProgress": number,
+    "joinedAt": "ISO_date",
+    "lastSession": "ISO_date",
+    "goals": { "key": "value" },
+    "stats": { "height": number, "weight": number, "age": number },
+    "phone": "string",
+    "email": "string"
+  }
+]
+```
+
+#### **11. Add New Client**
+```
+POST /api/clients
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "string",
+  "phone": "string",
+  "email": "string",
+  "goals": { "key": "value" },
+  "stats": { "height": number, "weight": number, "age": number }
+}
+
+Response: Created client object
+```
+
+#### **12. Update Client**
+```
+PUT /api/clients/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "string",
+  "status": "string",
+  "goals": { "key": "value" },
+  "stats": { "key": "value" }
+}
+
+Response: Updated client object
+```
+
+#### **13. Delete Client**
+```
+DELETE /api/clients/:id
+Authorization: Bearer <token>
+
+Response: { "message": "Client deleted successfully" }
+```
+
+### **Plan Management Endpoints**
+
+#### **14. Get All Plans**
+```
+GET /api/plans
+Authorization: Bearer <token>
+
+Response:
+[
+  {
+    "id": "string",
+    "coachId": "string",
+    "name": "string",
+    "description": "string",
+    "duration": number,
+    "price": number,
+    "features": ["string"],
+    "createdAt": "ISO_date",
+    "status": "active|inactive",
+    "clientCount": number,
+    "successRate": number,
+    "revenue": number
+  }
+]
+```
+
+#### **15. Add New Plan**
+```
+POST /api/plans
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
   "name": "string",
   "description": "string",
-  "imageUrl": "string?",
-  "duration": 30,
-  "price": 500.0,
-  "features": ["string"],
-  "createdAt": "ISO8601 string",
-  "expiresAt": "ISO8601 string?",
-  "status": "active|expired|draft",
-  "clientCount": 0,
-  "successRate": 0.0,
-  "revenue": 0.0
+  "duration": number,
+  "price": number,
+  "features": ["string"]
 }
+
+Response: Created plan object
 ```
 
-### 5. Authentication
+#### **16. Update Plan**
+```
+PUT /api/plans/:id
+Authorization: Bearer <token>
+Content-Type: application/json
 
-The app uses JWT tokens for authentication:
-
-1. **Token Storage:** Tokens are stored securely using `SharedPreferences`
-2. **Authorization Header:** All authenticated requests include:
-   ```
-   Authorization: Bearer <token>
-   ```
-3. **Token Refresh:** Implement token refresh logic in your backend if needed
-
-### 6. Error Handling
-
-The Flutter app expects consistent error responses:
-
-```json
 {
-  "message": "Error description",
-  "code": "ERROR_CODE",
-  "details": {}
+  "name": "string",
+  "description": "string",
+  "duration": number,
+  "price": number,
+  "features": ["string"],
+  "status": "active|inactive"
+}
+
+Response: Updated plan object
+```
+
+#### **17. Delete Plan**
+```
+DELETE /api/plans/:id
+Authorization: Bearer <token>
+
+Response: { "message": "Plan deleted successfully" }
+```
+
+### **Analytics Endpoints**
+
+#### **18. Get Dashboard Stats**
+```
+GET /api/analytics/dashboard
+Authorization: Bearer <token>
+
+Response:
+{
+  "totalClients": number,
+  "activeClients": number,
+  "pendingClients": number,
+  "totalRevenue": number,
+  "monthlyRevenue": number,
+  "averageProgress": number,
+  "totalPlans": number,
+  "activePlans": number
 }
 ```
 
-### 7. Testing the Integration
+## 🔐 **Authentication & Security**
 
-1. **Start the backend server**
-2. **Run the Flutter app:**
-   ```bash
-   flutter run
-   ```
-3. **Test authentication flow:**
-   - Sign up with a new account
-   - Sign in with existing account
-   - Check if profile loads correctly
+### **JWT Token Handling**
+- All authenticated endpoints require `Authorization: Bearer <token>` header
+- Tokens should be validated on every request
+- Implement token refresh mechanism
+- Set appropriate token expiration times
 
-### 8. Development Workflow
+### **CORS Configuration**
+```javascript
+// Example CORS setup for Express.js
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://haridiii07.github.io'],
+  credentials: true
+}));
+```
 
-1. **Backend Development:**
-   - Make changes to your Node.js backend
-   - Test endpoints with Postman or similar tool
-   - Update API documentation if needed
+### **Rate Limiting**
+Implement rate limiting for authentication endpoints:
+```javascript
+// Example with express-rate-limit
+const rateLimit = require('express-rate-limit');
 
-2. **Flutter Development:**
-   - Update API service if endpoints change
-   - Test with running backend
-   - Update models if data structure changes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5 // limit each IP to 5 requests per windowMs
+});
 
-### 9. Deployment
+app.use('/api/auth', authLimiter);
+```
 
-#### Backend Deployment
-1. Deploy your Node.js backend to your preferred platform
-2. Update the `baseUrl` in Flutter app configuration
-3. Set up environment variables in production
+## 📊 **Database Schema Examples**
 
-#### Flutter App Deployment
-1. Build the app for production:
-   ```bash
-   flutter build apk --release
-   ```
-2. Test with production backend URL
-3. Deploy to Google Play Store
+### **Coaches Table**
+```sql
+CREATE TABLE coaches (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  phone VARCHAR(20),
+  bio TEXT,
+  profile_photo_url VARCHAR(500),
+  certificates JSON,
+  subscription_tier VARCHAR(50) DEFAULT 'free',
+  client_limit INTEGER DEFAULT 3,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-### 10. Troubleshooting
+### **Clients Table**
+```sql
+CREATE TABLE clients (
+  id VARCHAR(255) PRIMARY KEY,
+  coach_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(20),
+  status VARCHAR(50) DEFAULT 'pending',
+  subscription_progress DECIMAL(5,2) DEFAULT 0.00,
+  goals JSON,
+  stats JSON,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_session TIMESTAMP,
+  FOREIGN KEY (coach_id) REFERENCES coaches(id)
+);
+```
 
-#### Common Issues:
+### **Plans Table**
+```sql
+CREATE TABLE plans (
+  id VARCHAR(255) PRIMARY KEY,
+  coach_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  duration INTEGER NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  features JSON,
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (coach_id) REFERENCES coaches(id)
+);
+```
 
-1. **Connection refused:**
-   - Check if backend server is running
-   - Verify the correct port (default: 3000)
-   - Check firewall settings
+## 🧪 **Testing Your Backend**
 
-2. **CORS errors:**
-   - Ensure backend has proper CORS configuration
-   - Add Flutter app's domain to allowed origins
+### **1. Test Authentication Flow**
+```bash
+# Test signup
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Coach","email":"test@example.com","phone":"+1234567890","password":"password123"}'
 
-3. **Authentication errors:**
-   - Check JWT token format
-   - Verify token expiration
-   - Check authorization headers
+# Test signin
+curl -X POST http://localhost:3000/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+```
 
-4. **Data format errors:**
-   - Ensure backend returns data in expected format
-   - Check date format (ISO8601)
-   - Verify required fields are present
+### **2. Test Protected Endpoints**
+```bash
+# Test coach profile
+curl -X GET http://localhost:3000/api/coaches/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
-### 11. Security Considerations
+### **3. Test with Flutter App**
+1. Set `useMockApi = false` in `app_config.dart`
+2. Update `baseUrl` to your backend URL
+3. Run the Flutter app and test all features
 
-1. **HTTPS in Production:** Always use HTTPS for production
-2. **Token Security:** Implement proper token validation
-3. **Input Validation:** Validate all inputs on backend
-4. **Rate Limiting:** Implement rate limiting for API endpoints
-5. **Data Encryption:** Encrypt sensitive data in transit and at rest
+## 🚀 **Deployment Considerations**
 
-### 12. Monitoring
+### **Environment Variables**
+```bash
+# Production environment
+NODE_ENV=production
+PORT=3000
+DATABASE_URL=your_database_url
+JWT_SECRET=your_jwt_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+FACEBOOK_APP_ID=your_facebook_app_id
+```
 
-1. **Backend Monitoring:**
-   - Monitor API response times
-   - Track error rates
-   - Monitor database performance
+### **Health Check Endpoint**
+```javascript
+// Add health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+```
 
-2. **Flutter App Monitoring:**
-   - Track app crashes
-   - Monitor API call success rates
-   - Track user engagement metrics
+### **Monitoring & Logging**
+- Implement request logging
+- Set up error monitoring (Sentry, etc.)
+- Monitor API response times
+- Track authentication failures
 
-## Support
+## 📞 **Support**
 
-For backend-specific issues, contact your backend developer.
-For Flutter app issues, refer to the main README.md file.
+If you need help with backend integration:
+1. Check the [Flutter app logs](https://flutter.dev/docs/testing/debugging)
+2. Verify API endpoints with tools like Postman
+3. Test with mock API first (`useMockApi = true`)
+4. Check network connectivity and CORS settings
+
+---
+
+**Your backend is ready for Athletica integration! 🚀**

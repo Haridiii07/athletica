@@ -44,8 +44,21 @@ Athletica is a comprehensive Flutter-based SaaS platform designed specifically f
 
 3. **Run the app**
    ```bash
-   flutter run
+   # Web (Chrome)
+   flutter run -d chrome
+   
+   # Android
+   flutter run -d android
+   
+   # iOS (Mac only)
+   flutter run -d ios
    ```
+
+### **🌐 Live Demo**
+**Web App**: [https://haridiii07.github.io/athletica/](https://haridiii07.github.io/athletica/)
+
+### **📱 Mobile App**
+Download the Android APK from the [Releases](https://github.com/Haridiii07/athletica/releases) section.
 
 ## 📱 **Screenshots**
 
@@ -157,28 +170,53 @@ flutter test --coverage
 
 ## 📦 **Building for Production**
 
-### **Android**
-```bash
-flutter build apk --release
-flutter build appbundle --release
-```
-
-### **iOS**
-```bash
-flutter build ios --release
-```
-
-### **Web**
+### **Web Deployment**
 ```bash
 flutter build web --release
+# Deploy build/web/ to GitHub Pages, Netlify, or Vercel
 ```
 
-### **Desktop**
+### **Android APK**
 ```bash
+flutter build apk --release
+# APK: build/app/outputs/flutter-apk/app-release.apk
+```
+
+### **iOS App**
+```bash
+flutter build ios --release
+# Upload to App Store Connect
+```
+
+### **Desktop Apps**
+```bash
+# Windows
 flutter build windows --release
+
+# macOS
 flutter build macos --release
+
+# Linux
 flutter build linux --release
 ```
+
+## 🚀 **Deployment Options**
+
+### **1. Web Deployment (Free)**
+- **GitHub Pages**: Automatic deployment from main branch
+- **Netlify**: Connect GitHub repo for auto-deploy
+- **Vercel**: Connect GitHub repo for auto-deploy
+
+### **2. Mobile Distribution**
+- **Android**: APK file sharing, Google Play Store
+- **iOS**: TestFlight, App Store
+
+### **3. Desktop Distribution**
+- **Windows**: Direct executable sharing
+- **macOS**: App Store, direct distribution
+- **Linux**: Package managers, direct distribution
+
+**📖 Detailed deployment guide**: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 
 ## 🤝 **Contributing**
 

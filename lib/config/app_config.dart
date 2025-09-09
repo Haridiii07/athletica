@@ -16,6 +16,7 @@ class AppConfig {
   static const String authForgotPassword = '/auth/forgot-password';
   static const String authGoogleSignIn = '/auth/google-signin';
   static const String authFacebookSignIn = '/auth/facebook-signin';
+  static const String authAppleSignIn = '/auth/apple-signin';
 
   static const String coachProfile = '/coaches/profile';
   static const String clients = '/clients';
@@ -32,4 +33,7 @@ class AppConfig {
   // File Upload
   static const int maxImageSize = 5 * 1024 * 1024; // 5MB
   static const List<String> allowedImageTypes = ['jpg', 'jpeg', 'png', 'webp'];
+
+  // Development Mode - Set to false for production
+  static const bool useMockApi = true; // Change to false for real backend
 }

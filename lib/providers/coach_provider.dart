@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:athletica/services/api_service.dart';
+import 'package:athletica/services/mock_api_service.dart';
 import 'package:athletica/models/client.dart';
 import 'package:athletica/models/plan.dart';
+import 'package:athletica/config/app_config.dart';
 
 class CoachProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService.instance;
-  
+  final dynamic _apiService =
+      AppConfig.useMockApi ? MockApiService.instance : ApiService.instance;
+
   List<Client> _clients = [];
   List<Plan> _plans = [];
   bool _isLoading = false;
@@ -22,7 +25,8 @@ class CoachProvider extends ChangeNotifier {
   int get pendingClients => _clients.where((client) => client.isPending).length;
   double get averageSubscriptionProgress {
     if (_clients.isEmpty) return 0.0;
-    final total = _clients.fold(0.0, (sum, client) => sum + client.subscriptionProgress);
+    final total =
+        _clients.fold(0.0, (sum, client) => sum + client.subscriptionProgress);
     return total / _clients.length;
   }
 
