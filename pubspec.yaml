@@ -50,7 +50,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
-  # Web configuration
-  web:
-    favicon: web/favicon.png
