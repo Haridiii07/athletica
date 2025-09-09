@@ -13,21 +13,30 @@
     body {
       margin: 0;
       padding: 0;
-      background: #121212;
+      background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
       color: white;
       font-family: 'Cairo', sans-serif;
+      overflow: hidden;
     }
+    
     .loading {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      z-index: 9999;
     }
+    
     .logo {
       width: 120px;
       height: 120px;
-      background: #4A67FF;
+      background: linear-gradient(135deg, #4A67FF 0%, #6B73FF 100%);
       border-radius: 30px;
       margin: 0 auto 30px;
       display: flex;
@@ -35,19 +44,138 @@
       justify-content: center;
       font-size: 60px;
       color: white;
+      box-shadow: 0 10px 30px rgba(74, 103, 255, 0.3);
+      animation: logoFloat 2s ease-in-out infinite;
     }
+    
+    .logo::before {
+      content: '';
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: linear-gradient(135deg, #4A67FF 0%, #6B73FF 100%);
+      border-radius: 35px;
+      opacity: 0.2;
+      animation: logoPulse 2s ease-in-out infinite;
+    }
+    
+    .title {
+      color: #4A67FF;
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      animation: titleFadeIn 1s ease-out 0.5s both;
+    }
+    
+    .subtitle {
+      color: #B3B3B3;
+      margin-bottom: 40px;
+      font-size: 1.1rem;
+      animation: titleFadeIn 1s ease-out 0.7s both;
+    }
+    
+    .progress-container {
+      width: 300px;
+      height: 4px;
+      background: #2C2C2C;
+      border-radius: 2px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+      animation: titleFadeIn 1s ease-out 0.9s both;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4A67FF 0%, #6B73FF 100%);
+      border-radius: 2px;
+      width: 0%;
+      animation: progressLoad 3s ease-out 1s both;
+    }
+    
+    .loading-text {
+      color: #B3B3B3;
+      font-size: 0.9rem;
+      animation: titleFadeIn 1s ease-out 1.1s both;
+    }
+    
     .spinner {
       width: 40px;
       height: 40px;
       border: 3px solid #2C2C2C;
       border-top: 3px solid #4A67FF;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
+      animation: spin 1s linear infinite, titleFadeIn 1s ease-out 1.3s both;
+      margin: 20px auto 0;
     }
+    
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      animation: titleFadeIn 1s ease-out 1.5s both;
+    }
+    
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #4A67FF;
+      border-radius: 50%;
+      animation: dotBounce 1.4s ease-in-out infinite both;
+    }
+    
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    .dot:nth-child(3) { animation-delay: 0s; }
+    
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes logoPulse {
+      0%, 100% { transform: scale(1); opacity: 0.2; }
+      50% { transform: scale(1.1); opacity: 0.1; }
+    }
+    
+    @keyframes titleFadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes progressLoad {
+      0% { width: 0%; }
+      30% { width: 30%; }
+      60% { width: 60%; }
+      80% { width: 80%; }
+      100% { width: 100%; }
+    }
+    
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    
+    .fade-out {
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .logo { width: 100px; height: 100px; font-size: 50px; }
+      .title { font-size: 2rem; }
+      .subtitle { font-size: 1rem; }
+      .progress-container { width: 250px; }
     }
   </style>
   <!-- Optimized font loading with Arabic subset -->
@@ -56,12 +184,74 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&subset=arabic&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="loading">
+  <div class="loading" id="loading">
     <div class="logo">🏋️</div>
-    <h1 style="color: #4A67FF; margin-bottom: 20px;">Athletica</h1>
-    <p style="color: #B3B3B3; margin-bottom: 30px;">Guide the challenge, inspire the journey</p>
+    <h1 class="title">Athletica</h1>
+    <p class="subtitle">Guide the challenge, inspire the journey</p>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <p class="loading-text" id="loadingText">Initializing...</p>
     <div class="spinner"></div>
+    <div class="dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
   </div>
+  
+  <script>
+    // Enhanced loading experience with progress simulation
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const loadingText = document.getElementById('loadingText');
+    const loading = document.getElementById('loading');
+    
+    const loadingSteps = [
+      { progress: 20, text: 'Loading assets...' },
+      { progress: 40, text: 'Initializing app...' },
+      { progress: 60, text: 'Setting up services...' },
+      { progress: 80, text: 'Preparing interface...' },
+      { progress: 100, text: 'Almost ready...' }
+    ];
+    
+    let currentStep = 0;
+    
+    function updateProgress() {
+      if (currentStep < loadingSteps.length) {
+        const step = loadingSteps[currentStep];
+        progress = step.progress;
+        progressBar.style.width = progress + '%';
+        loadingText.textContent = step.text;
+        currentStep++;
+        
+        setTimeout(updateProgress, 600);
+      }
+    }
+    
+    // Start progress animation
+    setTimeout(updateProgress, 1000);
+    
+    // Hide loading screen when Flutter is ready
+    window.addEventListener('flutter-first-frame', function() {
+      setTimeout(() => {
+        loading.classList.add('fade-out');
+        setTimeout(() => {
+          loading.style.display = 'none';
+        }, 500);
+      }, 1000);
+    });
+    
+    // Fallback: hide loading screen after 10 seconds
+    setTimeout(() => {
+      if (loading.style.display !== 'none') {
+        loading.classList.add('fade-out');
+        setTimeout(() => {
+          loading.style.display = 'none';
+        }, 500);
+      }
+    }, 10000);
+  </script>
   
   <script src="flutter.js" defer></script>
 </body>
