@@ -76,12 +76,6 @@ This React web app is a **pixel-perfect replica** of the Flutter Athletica app:
 4. **Workout Plans** - Create and manage plans
 5. **Responsive Design** - Test on mobile/desktop
 
-## 📊 **Business Features**
-
-- **Free Tier**: 3-client limit
-- **Premium Tiers**: Basic (500 EGP), Pro (750 EGP), Elite (1000 EGP)
-- **Revenue Tracking**: Analytics and financial insights
-- **Arabic Support**: RTL layout and localization ready
 
 ## 🔄 **Data Integration**
 
