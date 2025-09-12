@@ -12,7 +12,7 @@ class MockApiService {
   static MockApiService get instance => _instance ??= MockApiService._();
 
   String? _authToken;
-  bool _isAuthenticated = false;
+  bool _isAuthenticated = true; // Set to true for frontend testing
 
   MockApiService._();
 
@@ -415,9 +415,14 @@ class MockApiService {
       throw AuthException.tokenExpired();
     }
 
+    // Use the provided client ID if it exists, otherwise generate a new one
+    final clientId = client.id.isNotEmpty
+        ? client.id
+        : 'client_${DateTime.now().millisecondsSinceEpoch}';
+
     return client.copyWith(
-      id: 'client_${DateTime.now().millisecondsSinceEpoch}',
-      joinedAt: DateTime.now(),
+      id: clientId,
+      joinedAt: client.joinedAt,
     );
   }
 

@@ -14,6 +14,47 @@ class CoachProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  CoachProvider() {
+    // Initialize with mock data for frontend testing
+    if (AppConfig.useMockApi) {
+      _initializeMockData();
+    }
+  }
+
+  void _initializeMockData() {
+    // Add some mock clients for testing
+    _clients = [
+      Client(
+        id: 'client_1',
+        coachId: 'mock_coach_123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '+1234567890',
+        status: 'active',
+        subscriptionProgress: 0.75,
+        joinedAt: DateTime.now().subtract(const Duration(days: 30)),
+        lastSession: DateTime.now().subtract(const Duration(days: 2)),
+        goals: {'weight_loss': '10 lbs', 'muscle_gain': '5 lbs'},
+        stats: {'height': '6ft', 'weight': '180 lbs'},
+        sessionHistory: [],
+      ),
+      Client(
+        id: 'client_2',
+        coachId: 'mock_coach_123',
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+0987654321',
+        status: 'pending',
+        subscriptionProgress: 0.25,
+        joinedAt: DateTime.now().subtract(const Duration(days: 7)),
+        lastSession: null,
+        goals: {'strength': 'Bench 200 lbs'},
+        stats: {'height': '5ft 6in', 'weight': '140 lbs'},
+        sessionHistory: [],
+      ),
+    ];
+  }
+
   List<Client> get clients => _clients;
   List<Plan> get plans => _plans;
   bool get isLoading => _isLoading;

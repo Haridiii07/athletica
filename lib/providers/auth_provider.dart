@@ -32,8 +32,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isValidationError => _lastException is ValidationException;
 
   AuthProvider() {
-    // Disabled for frontend testing - no auth check on startup
-    // _checkAuthState();
+    // Set up mock coach for frontend testing
+    if (AppConfig.useMockApi) {
+      _coach = Coach(
+        id: 'mock_coach_123',
+        name: 'Test Coach',
+        email: 'test@coach.com',
+        phone: '+1234567890',
+        bio: 'Test coach for frontend development',
+        certificates: ['Test Certificate'],
+        subscriptionTier: 'premium',
+        clientLimit: 100,
+        createdAt: DateTime.now(),
+        lastActive: DateTime.now(),
+      );
+    }
   }
 
   Future<bool> signUp({

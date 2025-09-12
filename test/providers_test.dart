@@ -5,6 +5,7 @@ import 'package:athletica/models/client.dart';
 import 'package:athletica/models/plan.dart';
 import 'package:athletica/models/coach.dart';
 import 'package:athletica/utils/exceptions.dart';
+import 'package:athletica/config/app_config.dart';
 
 void main() {
   group('AuthProvider Tests', () {
@@ -18,9 +19,16 @@ void main() {
       authProvider.dispose();
     });
 
-    test('should initialize with unauthenticated state', () {
-      expect(authProvider.isAuthenticated, false);
-      expect(authProvider.coach, null);
+    test('should initialize with correct state', () {
+      if (AppConfig.useMockApi) {
+        // In mock mode, we start authenticated for testing
+        expect(authProvider.isAuthenticated, true);
+        expect(authProvider.coach, isNotNull);
+      } else {
+        // In real mode, we start unauthenticated
+        expect(authProvider.isAuthenticated, false);
+        expect(authProvider.coach, null);
+      }
       expect(authProvider.isLoading, false);
       expect(authProvider.error, null);
     });
@@ -124,9 +132,16 @@ void main() {
       coachProvider.dispose();
     });
 
-    test('should initialize with empty data', () {
-      expect(coachProvider.clients, isEmpty);
-      expect(coachProvider.plans, isEmpty);
+    test('should initialize with correct data', () {
+      if (AppConfig.useMockApi) {
+        // In mock mode, we start with test data
+        expect(coachProvider.clients, isNotEmpty);
+        expect(coachProvider.clients.length, 2);
+      } else {
+        // In real mode, we start with empty data
+        expect(coachProvider.clients, isEmpty);
+        expect(coachProvider.plans, isEmpty);
+      }
       expect(coachProvider.isLoading, false);
     });
 
@@ -148,8 +163,9 @@ void main() {
       expect(coachProvider.isLoading, false);
     });
 
-    test('should add client', () {
+    test('should add client', () async {
       // Arrange
+      final initialCount = coachProvider.clients.length;
       final client = Client(
         id: 'test_client',
         coachId: 'coach1',
@@ -158,14 +174,15 @@ void main() {
       );
 
       // Act
-      coachProvider.addClient(client);
+      final result = await coachProvider.addClient(client);
 
       // Assert
-      expect(coachProvider.clients.length, 1);
+      expect(result, true);
+      expect(coachProvider.clients.length, initialCount + 1);
       expect(coachProvider.clients.first.id, 'test_client');
     });
 
-    test('should update client', () {
+    test('should update client', () async {
       // Arrange
       final client = Client(
         id: 'test_client',
@@ -173,33 +190,36 @@ void main() {
         name: 'Test Client',
         joinedAt: DateTime.now(),
       );
-      coachProvider.addClient(client);
+      await coachProvider.addClient(client);
 
       final updatedClient = client.copyWith(name: 'Updated Client');
 
       // Act
-      coachProvider.updateClient(updatedClient);
+      final result = await coachProvider.updateClient(updatedClient);
 
       // Assert
+      expect(result, true);
       expect(coachProvider.clients.first.name, 'Updated Client');
     });
 
-    test('should delete client', () {
+    test('should delete client', () async {
       // Arrange
+      final initialCount = coachProvider.clients.length;
       final client = Client(
         id: 'test_client',
         coachId: 'coach1',
         name: 'Test Client',
         joinedAt: DateTime.now(),
       );
-      coachProvider.addClient(client);
-      expect(coachProvider.clients.length, 1);
+      await coachProvider.addClient(client);
+      expect(coachProvider.clients.length, initialCount + 1);
 
       // Act
-      coachProvider.deleteClient('test_client');
+      final result = await coachProvider.deleteClient('test_client');
 
       // Assert
-      expect(coachProvider.clients, isEmpty);
+      expect(result, true);
+      expect(coachProvider.clients.length, initialCount);
     });
 
     test('should add plan', () {

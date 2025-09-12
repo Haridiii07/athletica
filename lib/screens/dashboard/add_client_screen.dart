@@ -358,12 +358,23 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
     try {
       final coachProvider = Provider.of<CoachProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Check if coach is available
+      if (authProvider.coach?.id == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please sign in to add clients'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+        return;
+      }
 
       final client = Client(
         id: widget.client?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId:
-            Provider.of<AuthProvider>(context, listen: false).coach?.id ?? '',
+        coachId: authProvider.coach!.id,
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim().isNotEmpty
@@ -379,25 +390,46 @@ class _AddClientScreenState extends State<AddClientScreen> {
         sessionHistory: widget.client?.sessionHistory ?? [],
       );
 
+      bool success;
       if (widget.client != null) {
-        await coachProvider.updateClient(client);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Client updated successfully'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
+        success = await coachProvider.updateClient(client);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Client updated successfully'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to update client: ${coachProvider.error ?? "Unknown error"}'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
       } else {
-        await coachProvider.addClient(client);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Client added successfully'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
+        success = await coachProvider.addClient(client);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Client added successfully'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to add client: ${coachProvider.error ?? "Unknown error"}'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
       }
-
-      Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -435,14 +467,25 @@ class _AddClientScreenState extends State<AddClientScreen> {
               try {
                 final coachProvider =
                     Provider.of<CoachProvider>(context, listen: false);
-                await coachProvider.deleteClient(widget.client!.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Client deleted successfully'),
-                    backgroundColor: AppTheme.successGreen,
-                  ),
-                );
-                Navigator.of(context).pop();
+                bool success =
+                    await coachProvider.deleteClient(widget.client!.id);
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Client deleted successfully'),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Failed to delete client: ${coachProvider.error ?? "Unknown error"}'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
