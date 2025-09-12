@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -271,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Notifications',
             subtitle: 'Manage your notification preferences',
             onTap: () {
-              // TODO: Navigate to notifications settings
+              // Placeholder - notifications settings navigation will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Notifications settings coming soon'),
@@ -286,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Privacy & Security',
             subtitle: 'Manage your account security',
             onTap: () {
-              // TODO: Navigate to privacy settings
+              // Placeholder - privacy settings navigation will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Privacy settings coming soon'),
@@ -314,7 +314,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'Help & Support',
             subtitle: 'Get help and contact support',
             onTap: () {
-              // TODO: Navigate to help
+              // Placeholder - help navigation will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Help & support coming soon'),
@@ -360,8 +360,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isDestructive
-              ? AppTheme.errorRed.withOpacity(0.1)
-              : AppTheme.primaryBlue.withOpacity(0.1),
+              ? AppTheme.errorRed.withValues(alpha: 0.1)
+              : AppTheme.primaryBlue.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(

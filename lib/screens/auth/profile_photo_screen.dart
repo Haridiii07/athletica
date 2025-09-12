@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/screens/auth/identity_verification_screen.dart';
 import 'package:athletica/utils/theme.dart';
 
@@ -118,17 +120,103 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
       _isLoading = true;
     });
 
-    // Simulate image upload
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+      // Upload the image and get the URL
+      final imageUrl = await authProvider.uploadProfilePhoto(_selectedImage!);
+
+      if (imageUrl != null && mounted) {
+        // Update the coach profile with the new photo URL
+        final success = await authProvider.updateProfile(
+          profilePhotoUrl: imageUrl,
+        );
+
+        if (success && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile photo uploaded successfully!'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+
+          // Navigate to the next screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const IdentityVerificationScreen(),
+            ),
+          );
+        } else if (mounted) {
+          _showErrorMessage(authProvider);
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to upload profile photo'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error uploading photo: ${e.toString()}'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Show error message with appropriate styling based on exception type
+  void _showErrorMessage(AuthProvider authProvider) {
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const IdentityVerificationScreen(),
+    String message;
+    Color backgroundColor;
+    IconData icon;
+
+    if (authProvider.isNetworkError) {
+      message = authProvider.error ?? 'Network error occurred';
+      backgroundColor = AppTheme.warningOrange;
+      icon = Icons.wifi_off_outlined;
+    } else if (authProvider.isValidationError) {
+      message = authProvider.error ?? 'Invalid image format';
+      backgroundColor = AppTheme.errorRed;
+      icon = Icons.error_outline;
+    } else {
+      message = authProvider.error ?? 'Failed to upload profile photo';
+      backgroundColor = AppTheme.errorRed;
+      icon = Icons.error_outline;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        duration: authProvider.isNetworkError
+            ? const Duration(seconds: 5)
+            : const Duration(seconds: 3),
+        action: authProvider.isNetworkError
+            ? SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _continueToNext(),
+              )
+            : null,
       ),
     );
   }

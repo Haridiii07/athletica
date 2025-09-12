@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:athletica/providers/auth_provider.dart';
 import 'package:athletica/screens/main_screen.dart';
 import 'package:athletica/screens/auth/forgot_password_screen.dart';
@@ -126,6 +127,8 @@ class _SignInScreenState extends State<SignInScreen> {
         return;
       }
 
+      if (!mounted) return;
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       final success = await authProvider.signInWithGoogle(
@@ -135,7 +138,9 @@ class _SignInScreenState extends State<SignInScreen> {
         profilePhotoUrl: googleUser.photoUrl,
       );
 
-      if (success && mounted) {
+      if (!mounted) return;
+
+      if (success) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MainScreen()),
           (route) => false,
@@ -147,7 +152,7 @@ class _SignInScreenState extends State<SignInScreen> {
             backgroundColor: AppTheme.successGreen,
           ),
         );
-      } else if (mounted) {
+      } else {
         _showErrorMessage(authProvider);
       }
     } catch (e) {
@@ -198,6 +203,8 @@ class _SignInScreenState extends State<SignInScreen> {
       // Get user data from Facebook
       final userData = await FacebookAuth.instance.getUserData();
 
+      if (!mounted) return;
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       final success = await authProvider.signInWithFacebook(
@@ -207,7 +214,9 @@ class _SignInScreenState extends State<SignInScreen> {
         profilePhotoUrl: userData['picture']?['data']?['url'] as String?,
       );
 
-      if (success && mounted) {
+      if (!mounted) return;
+
+      if (success) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MainScreen()),
           (route) => false,
@@ -219,7 +228,7 @@ class _SignInScreenState extends State<SignInScreen> {
             backgroundColor: AppTheme.successGreen,
           ),
         );
-      } else if (mounted) {
+      } else {
         _showErrorMessage(authProvider);
       }
     } catch (e) {
@@ -227,6 +236,75 @@ class _SignInScreenState extends State<SignInScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Facebook sign in error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      if (credential.identityToken == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to get Apple identity token'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Extract name from Apple credential
+      String? fullName;
+      if (credential.givenName != null && credential.familyName != null) {
+        fullName = '${credential.givenName} ${credential.familyName}';
+      } else if (credential.givenName != null) {
+        fullName = credential.givenName;
+      }
+
+      final success = await authProvider.signInWithApple(
+        appleToken: credential.identityToken!,
+        name: fullName,
+        email: credential.email,
+        profilePhotoUrl: null, // Apple doesn't provide profile photos
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully signed in with Apple!'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+      } else {
+        _showErrorMessage(authProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Apple sign in error: ${e.toString()}'),
             backgroundColor: AppTheme.errorRed,
           ),
         );
@@ -430,17 +508,19 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 24),
 
                 // Social Login Buttons
-                Row(
+                Column(
                   children: [
-                    Expanded(
+                    // Apple Sign-In Button (iOS-first)
+                    SizedBox(
+                      width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: _signInWithGoogle,
+                        onPressed: _signInWithApple,
                         icon: const Icon(
-                          Icons.g_mobiledata,
+                          Icons.apple,
                           color: AppTheme.textPrimary,
                         ),
                         label: const Text(
-                          'Google',
+                          'Continue with Apple',
                           style: TextStyle(color: AppTheme.textPrimary),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -452,26 +532,55 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _signInWithFacebook,
-                        icon: const Icon(
-                          Icons.facebook,
-                          color: AppTheme.textPrimary,
-                        ),
-                        label: const Text(
-                          'Facebook',
-                          style: TextStyle(color: AppTheme.textPrimary),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppTheme.borderColor),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 12),
+
+                    // Google and Facebook in a row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _signInWithGoogle,
+                            icon: const Icon(
+                              Icons.g_mobiledata,
+                              color: AppTheme.textPrimary,
+                            ),
+                            label: const Text(
+                              'Google',
+                              style: TextStyle(color: AppTheme.textPrimary),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side:
+                                  const BorderSide(color: AppTheme.borderColor),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _signInWithFacebook,
+                            icon: const Icon(
+                              Icons.facebook,
+                              color: AppTheme.textPrimary,
+                            ),
+                            label: const Text(
+                              'Facebook',
+                              style: TextStyle(color: AppTheme.textPrimary),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side:
+                                  const BorderSide(color: AppTheme.borderColor),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

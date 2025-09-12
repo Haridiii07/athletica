@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:athletica/models/coach.dart';
 import 'package:athletica/models/client.dart';
 import 'package:athletica/models/plan.dart';
 import 'package:athletica/utils/exceptions.dart';
+import 'package:athletica/config/app_config.dart';
 
 /// Mock API Service for frontend testing without backend
 /// This simulates all API responses for UI testing
@@ -14,9 +16,9 @@ class MockApiService {
 
   MockApiService._();
 
-  // Simulate network delay
+  // Simulate network delay (reduced for frontend testing)
   Future<void> _simulateDelay() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
   }
 
   // Mock authentication token
@@ -189,6 +191,42 @@ class MockApiService {
       phone: '+1234567890',
       profilePhotoUrl: profilePhotoUrl,
       bio: 'Facebook Sign-In User',
+      certificates: [],
+      subscriptionTier: 'free',
+      clientLimit: 3,
+      createdAt: DateTime.now(),
+      lastActive: DateTime.now(),
+    );
+
+    return {
+      'token': _authToken,
+      'coach': coach.toJson(),
+    };
+  }
+
+  // Mock Apple Sign In
+  Future<Map<String, dynamic>> signInWithApple({
+    required String appleToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    await _simulateDelay();
+
+    if (appleToken == 'invalid_token') {
+      throw ExternalServiceException.appleSignIn();
+    }
+
+    _authToken = 'mock_apple_token_${DateTime.now().millisecondsSinceEpoch}';
+    _isAuthenticated = true;
+
+    final coach = Coach(
+      id: 'mock_apple_coach_${DateTime.now().millisecondsSinceEpoch}',
+      name: name ?? 'Apple User',
+      email: email ?? 'user@icloud.com',
+      phone: '+1234567890',
+      profilePhotoUrl: profilePhotoUrl,
+      bio: 'Apple Sign-In User',
       certificates: [],
       subscriptionTier: 'free',
       clientLimit: 3,
@@ -439,5 +477,41 @@ class MockApiService {
     }
 
     // Simulate successful deletion
+  }
+
+  // Mock Image Upload
+  Future<String> uploadImage(File imageFile) async {
+    await _simulateDelay();
+
+    if (!_isAuthenticated) {
+      throw AuthException.tokenExpired();
+    }
+
+    // Simulate file size validation
+    final fileSize = await imageFile.length();
+    if (fileSize > AppConfig.maxImageSize) {
+      throw ValidationException(
+        message:
+            'Image file is too large. Maximum size is ${AppConfig.maxImageSize ~/ (1024 * 1024)}MB.',
+        code: 'FILE_TOO_LARGE',
+      );
+    }
+
+    // Simulate image format validation
+    final fileName = imageFile.path.toLowerCase();
+    final isValidFormat = AppConfig.allowedImageTypes.any(
+      (ext) => fileName.endsWith('.$ext'),
+    );
+
+    if (!isValidFormat) {
+      throw ValidationException(
+        message:
+            'Invalid image format. Allowed formats: ${AppConfig.allowedImageTypes.join(', ')}',
+        code: 'INVALID_FORMAT',
+      );
+    }
+
+    // Simulate successful upload and return mock URL
+    return 'https://mock-cdn.athletica.com/profile_photos/mock_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
   }
 }

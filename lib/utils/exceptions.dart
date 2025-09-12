@@ -1,5 +1,6 @@
 /// Custom exception classes for the Athletica app
 /// These provide more specific error handling and better user experience
+library;
 
 /// Base exception class for all custom exceptions
 abstract class AppException implements Exception {
@@ -291,6 +292,15 @@ class ExternalServiceException extends AppException {
           'Facebook Sign-In is currently unavailable. Please try again or use email/password.',
       service: 'Facebook Sign-In',
       code: 'FACEBOOK_SIGNIN_ERROR',
+    );
+  }
+
+  factory ExternalServiceException.appleSignIn() {
+    return const ExternalServiceException(
+      message:
+          'Apple Sign-In is currently unavailable. Please try again or use email/password.',
+      service: 'Apple Sign-In',
+      code: 'APPLE_SIGNIN_ERROR',
     );
   }
 

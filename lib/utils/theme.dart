@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Colors from Figma design
   static const Color primaryBlue = Color(0xFF4A67FF);
+  static const Color primaryColor = primaryBlue; // Alias for compatibility
   static const Color darkBackground = Color(0xFF121212);
   static const Color cardBackground = Color(0xFF1E1E1E);
   static const Color textPrimary = Color(0xFFFFFFFF);
@@ -14,6 +15,19 @@ class AppTheme {
   static const Color errorRed = Color(0xFFF44336);
   static const Color warningOrange = Color(0xFFFF9800);
 
+  // Text Styles
+  static const TextStyle headingStyle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: textPrimary,
+  );
+
+  static const TextStyle bodyStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+    color: textPrimary,
+  );
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -21,7 +35,7 @@ class AppTheme {
       primaryColor: primaryBlue,
       scaffoldBackgroundColor: darkBackground,
       cardColor: cardBackground,
-      
+
       // Text Theme
       textTheme: GoogleFonts.cairoTextTheme(
         const TextTheme(
@@ -97,10 +111,10 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: cardBackground,
         elevation: 0,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           side: BorderSide(color: borderColor, width: 1),
         ),

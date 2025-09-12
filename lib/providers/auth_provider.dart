@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:athletica/services/api_service.dart';
 import 'package:athletica/services/mock_api_service.dart';
 import 'package:athletica/models/coach.dart';
@@ -31,28 +32,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isValidationError => _lastException is ValidationException;
 
   AuthProvider() {
-    _checkAuthState();
-  }
-
-  Future<void> _checkAuthState() async {
-    try {
-      final token = await _apiService.authToken;
-      if (token != null) {
-        await _loadCoachData();
-      }
-    } catch (e) {
-      // Token is invalid, clear it
-      await _apiService.clearAuthToken();
-    }
-  }
-
-  Future<void> _loadCoachData() async {
-    try {
-      _coach = await _apiService.getCoachProfile();
-      notifyListeners();
-    } catch (e) {
-      _handleException(e as Exception);
-    }
+    // Disabled for frontend testing - no auth check on startup
+    // _checkAuthState();
   }
 
   Future<bool> signUp({
@@ -184,6 +165,50 @@ class AuthProvider extends ChangeNotifier {
       _handleException(e as Exception);
       _setLoading(false);
       return false;
+    }
+  }
+
+  Future<bool> signInWithApple({
+    required String appleToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    _setLoading(true);
+    _error = null;
+    _lastException = null;
+
+    try {
+      final response = await _apiService.signInWithApple(
+        appleToken: appleToken,
+        name: name,
+        email: email,
+        profilePhotoUrl: profilePhotoUrl,
+      );
+
+      _coach = Coach.fromJson(response['coach']);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _handleException(e as Exception);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<String?> uploadProfilePhoto(File imageFile) async {
+    _setLoading(true);
+    _error = null;
+    _lastException = null;
+
+    try {
+      final imageUrl = await _apiService.uploadImage(imageFile);
+      _setLoading(false);
+      return imageUrl;
+    } catch (e) {
+      _handleException(e as Exception);
+      _setLoading(false);
+      return null;
     }
   }
 

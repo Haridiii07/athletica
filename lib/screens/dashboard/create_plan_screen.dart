@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:athletica/providers/coach_provider.dart';
 import 'package:athletica/models/plan.dart';
+import 'package:athletica/models/exercise.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:athletica/providers/auth_provider.dart';
+import 'package:athletica/screens/dashboard/exercise_library_screen.dart';
+import 'package:athletica/screens/dashboard/workout_template_screen.dart';
 
 class CreatePlanScreen extends StatefulWidget {
   final Plan? plan; // For editing existing plan
@@ -28,6 +31,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
   final ImagePicker _picker = ImagePicker();
   final List<String> _features = [];
   final TextEditingController _featureController = TextEditingController();
+  final List<ExerciseSet> _exercises = [];
 
   final List<String> _statusOptions = ['draft', 'active', 'archived'];
 
@@ -166,6 +170,13 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Exercise Management Section
+                _buildSectionTitle('Workout Exercises'),
+                const SizedBox(height: 16),
+
+                _buildExerciseManagementSection(),
+                const SizedBox(height: 24),
+
                 // Features Section
                 _buildSectionTitle('Plan Features'),
                 const SizedBox(height: 16),
@@ -301,6 +312,204 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
     );
   }
 
+  Widget _buildExerciseManagementSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _openExerciseLibrary,
+                  icon: const Icon(Icons.library_books),
+                  label: const Text('Add Exercises'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _openWorkoutTemplates,
+                  icon: const Icon(Icons.content_copy),
+                  label: const Text('Use Template'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryBlue,
+                    side: const BorderSide(color: AppTheme.primaryBlue),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Exercise list
+          if (_exercises.isNotEmpty) ...[
+            Text(
+              'Selected Exercises (${_exercises.length}):',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            ...(_exercises.asMap().entries.map((entry) {
+              final index = entry.key;
+              final exercise = entry.value;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkBackground,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryBlue,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exercise.exerciseName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (exercise.reps != null) ...[
+                                Text(
+                                  '${exercise.reps} reps',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              if (exercise.restTime != null) ...[
+                                Text(
+                                  '${exercise.restTime}s rest',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              if (exercise.duration != null) ...[
+                                Text(
+                                  '${exercise.duration}s',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => _removeExercise(index),
+                      icon: const Icon(Icons.close,
+                          color: AppTheme.errorRed, size: 20),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              );
+            }).toList()),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.borderColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.fitness_center_outlined,
+                    size: 48,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No exercises added yet',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add exercises from the library or use a workout template',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildFeaturesSection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -348,7 +557,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
                 onPressed: _addFeature,
                 icon: const Icon(Icons.add, color: AppTheme.primaryBlue),
                 style: IconButton.styleFrom(
-                  backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                  backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
                 ),
               ),
             ],
@@ -537,6 +746,94 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
   void _removeFeature(int index) {
     setState(() {
       _features.removeAt(index);
+    });
+  }
+
+  void _openExerciseLibrary() async {
+    final result = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => ExerciseLibraryScreen(
+          onExerciseSelected: _toggleExercise,
+          selectedExercises: _exercises
+              .map((e) => Exercise(
+                    id: e.exerciseId,
+                    name: e.exerciseName,
+                    description: '',
+                    category: '',
+                    difficulty: '',
+                    equipment: '',
+                    muscleGroups: '',
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+
+    if (result != null) {
+      _addExerciseFromLibrary(result);
+    }
+  }
+
+  void _openWorkoutTemplates() async {
+    await Navigator.of(context).push<WorkoutTemplate>(
+      MaterialPageRoute(
+        builder: (_) => WorkoutTemplateScreen(
+          onTemplateSelected: _useWorkoutTemplate,
+        ),
+      ),
+    );
+  }
+
+  void _toggleExercise(Exercise exercise) {
+    setState(() {
+      final existingIndex =
+          _exercises.indexWhere((e) => e.exerciseId == exercise.id);
+      if (existingIndex != -1) {
+        _exercises.removeAt(existingIndex);
+      } else {
+        _addExerciseFromLibrary(exercise);
+      }
+    });
+  }
+
+  void _addExerciseFromLibrary(Exercise exercise) {
+    final exerciseSet = ExerciseSet(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+      reps: exercise.reps,
+      duration: exercise.duration,
+      restTime: 60, // Default rest time
+      order: _exercises.length + 1,
+    );
+
+    setState(() {
+      _exercises.add(exerciseSet);
+    });
+  }
+
+  void _useWorkoutTemplate(WorkoutTemplate template) {
+    setState(() {
+      _exercises.clear();
+      _exercises.addAll(template.exercises);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'Added ${template.exercises.length} exercises from "${template.name}" template'),
+        backgroundColor: AppTheme.successGreen,
+      ),
+    );
+  }
+
+  void _removeExercise(int index) {
+    setState(() {
+      _exercises.removeAt(index);
+      // Update order numbers
+      for (int i = index; i < _exercises.length; i++) {
+        _exercises[i] = _exercises[i].copyWith(order: i + 1);
+      }
     });
   }
 

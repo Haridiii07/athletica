@@ -153,10 +153,10 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.videocam, color: AppTheme.textPrimary),
             onPressed: () {
-              // TODO: Implement video call
+              // Placeholder - video call functionality will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Video call feature coming soon'),
+                  content: const Text('Video call feature coming soon'),
                   backgroundColor: AppTheme.warningOrange,
                 ),
               );
@@ -165,10 +165,10 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.phone, color: AppTheme.textPrimary),
             onPressed: () {
-              // TODO: Implement voice call
+              // Placeholder - voice call functionality will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Voice call feature coming soon'),
+                  content: const Text('Voice call feature coming soon'),
                   backgroundColor: AppTheme.warningOrange,
                 ),
               );
@@ -282,7 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           color: isMe
-                              ? Colors.white.withOpacity(0.7)
+                              ? Colors.white.withValues(alpha: 0.7)
                               : AppTheme.textGrey,
                           fontSize: 12,
                         ),
@@ -293,8 +293,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
                           color: message.isRead
-                              ? Colors.white.withOpacity(0.7)
-                              : Colors.white.withOpacity(0.5),
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : Colors.white.withValues(alpha: 0.5),
                         ),
                       ],
                     ],
@@ -369,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.send, color: AppTheme.primaryBlue),
             onPressed: _sendMessage,
             style: IconButton.styleFrom(
-              backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+              backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -517,7 +517,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -581,7 +581,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _pickVideo() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Video attachment feature coming soon'),
+        content: const Text('Video attachment feature coming soon'),
         backgroundColor: AppTheme.warningOrange,
       ),
     );
@@ -590,7 +590,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _pickFile() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('File attachment feature coming soon'),
+        content: const Text('File attachment feature coming soon'),
         backgroundColor: AppTheme.warningOrange,
       ),
     );

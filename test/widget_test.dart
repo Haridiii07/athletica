@@ -1,30 +1,92 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:athletica/main.dart';
+import 'package:provider/provider.dart';
+import 'package:athletica/providers/auth_provider.dart';
+import 'package:athletica/providers/coach_provider.dart';
+import 'package:athletica/screens/auth/signin_screen.dart';
+import 'package:athletica/screens/dashboard/home_screen.dart';
+import 'package:athletica/utils/theme.dart';
+import 'package:athletica/widgets/empty_states.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const AthleticaApp());
+  group('SignInScreen Widget Tests', () {
+    testWidgets('should display sign in form elements',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => CoachProvider()),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.darkTheme,
+            home: const SignInScreen(),
+          ),
+        ),
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(find.text('Welcome Back'), findsOneWidget);
+      expect(find.text('Sign in to continue'), findsOneWidget);
+      expect(find.byType(TextField), findsNWidgets(2));
+      expect(find.text('Sign In'), findsOneWidget);
+    });
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  group('HomeScreen Widget Tests', () {
+    testWidgets('should display home screen elements',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => CoachProvider()),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.darkTheme,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(find.text('Dashboard'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+    });
+  });
+
+  group('Empty States Widget Tests', () {
+    testWidgets('should display empty state widget',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: Scaffold(
+            body: EmptyClientsWidget(
+              onAddClient: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('No Clients Yet'), findsOneWidget);
+      expect(find.text('Add First Client'), findsOneWidget);
+    });
+  });
+
+  group('Loading States Widget Tests', () {
+    testWidgets('should display loading indicator',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
   });
 }

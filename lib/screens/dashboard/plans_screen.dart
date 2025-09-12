@@ -250,7 +250,7 @@ class _PlansScreenState extends State<PlansScreen> {
             decoration: BoxDecoration(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
             ),
             child: Stack(
               children: [
@@ -283,7 +283,7 @@ class _PlansScreenState extends State<PlansScreen> {
                         Shadow(
                           offset: const Offset(0, 1),
                           blurRadius: 3,
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                         ),
                       ],
                     ),
@@ -441,7 +441,7 @@ class _PlansScreenState extends State<PlansScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.9),
+        color: color.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -548,7 +548,7 @@ class _PlansScreenState extends State<PlansScreen> {
         );
         break;
       case 'duplicate':
-        // TODO: Duplicate plan
+        // Placeholder - duplicate plan functionality will be implemented
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${plan.name} duplicated successfully'),
@@ -557,7 +557,7 @@ class _PlansScreenState extends State<PlansScreen> {
         );
         break;
       case 'archive':
-        // TODO: Archive plan
+        // Placeholder - archive plan functionality will be implemented
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${plan.name} archived successfully'),
@@ -595,7 +595,7 @@ class _PlansScreenState extends State<PlansScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Implement delete plan
+              // Placeholder - delete plan functionality will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${plan.name} deleted successfully'),

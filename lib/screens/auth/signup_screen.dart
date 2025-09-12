@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/screens/auth/otp_screen.dart';
+import 'package:athletica/screens/auth/profile_photo_screen.dart';
 import 'package:athletica/utils/theme.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -97,7 +97,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (success && mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => const OtpScreen(),
+          builder: (_) => const ProfilePhotoScreen(),
         ),
       );
     } else if (mounted) {

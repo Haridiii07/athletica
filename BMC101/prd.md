@@ -4,18 +4,18 @@
 
 - **Objective**: Deliver an Arabic-first SaaS platform for independent fitness trainers in Ismailia (Cairo opportunistic) to manage clients, schedules, and workouts, replacing WhatsApp/Excel.
 - **Business Goals**:
-    - Onboard 50 trainers (worst-case: 20).
-    - Achieve <20% churn via intuitive UX and community features.
-    - Convert 5–10 trainers to premium (10–20%, worst-case: 4).
-    - Generate 60,000–300,000 EGP/year (worst-case: 24,000 EGP).
-    - Expand to Cairo (150 trainers, Months 4–6).
+  - Onboard 50 trainers (worst-case: 20).
+  - Achieve <20% churn via intuitive UX and community features.
+  - Convert 5–10 trainers to premium (10–20%, worst-case: 4).
+  - Generate 60,000–300,000 EGP/year (worst-case: 24,000 EGP).
+  - Expand to Cairo (150 trainers, Months 4–6).
 
 ## 2. Target Audience
 
 - **Independent Trainers**:
-    - Ismailia (primary), Cairo (via organic marketing).
-    - 10–50 clients, 10,000–50,000 EGP/month (500–2,000 EGP/client).
-    - ~70% uncertified, using WhatsApp/Excel.
+  - Ismailia (primary), Cairo (via organic marketing).
+  - 10–50 clients, 10,000–50,000 EGP/month (500–2,000 EGP/client).
+  - ~70% uncertified, using WhatsApp/Excel.
 - **Team**: PM/IT manager for web app management (sign-ups, support, KPIs).
 
 ## 3. Features

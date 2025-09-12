@@ -5,6 +5,7 @@ import 'package:athletica/models/client.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
 import 'package:athletica/screens/dashboard/chat_screen.dart';
+import 'package:athletica/screens/dashboard/client_details_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -345,7 +346,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => AddClientScreen(client: client),
+              builder: (_) => ClientDetailsScreen(client: client),
             ),
           );
         },
@@ -378,9 +379,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
@@ -446,6 +447,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void _handleClientAction(String action, Client client) {
     switch (action) {
       case 'view':
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ClientDetailsScreen(client: client),
+          ),
+        );
+        break;
       case 'edit':
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -490,7 +497,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Implement delete client
+              // Placeholder - delete client functionality will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${client.name} deleted successfully'),

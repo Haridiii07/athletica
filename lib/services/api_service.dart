@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 import 'package:athletica/config/app_config.dart';
 import 'package:athletica/models/coach.dart';
 import 'package:athletica/models/client.dart';
@@ -208,6 +209,31 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> signInWithApple({
+    required String appleToken,
+    String? name,
+    String? email,
+    String? profilePhotoUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConfig.authAppleSignIn,
+        data: {
+          'appleToken': appleToken,
+          if (name != null) 'name': name,
+          if (email != null) 'email': email,
+          if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      await setAuthToken(data['token']);
+      return data;
+    } on DioException catch (e) {
+      throw _handleDioException(e, AppConfig.authAppleSignIn);
+    }
+  }
+
   // Coach endpoints
   Future<Coach> getCoachProfile() async {
     try {
@@ -346,6 +372,34 @@ class ApiService {
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _handleDioException(e, AppConfig.analytics);
+    }
+  }
+
+  // Image upload endpoint
+  Future<String> uploadImage(File imageFile) async {
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename:
+              'profile_photo_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ),
+      });
+
+      final response = await _dio.post(
+        '/upload/image',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      return data['imageUrl'] as String;
+    } on DioException catch (e) {
+      throw _handleDioException(e, '/upload/image');
     }
   }
 }

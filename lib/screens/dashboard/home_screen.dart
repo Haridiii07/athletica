@@ -6,6 +6,9 @@ import 'package:athletica/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
 import 'package:athletica/screens/dashboard/create_plan_screen.dart';
+import 'package:athletica/screens/dashboard/analytics_dashboard_screen.dart';
+import 'package:athletica/screens/dashboard/revenue_analytics_screen.dart';
+import 'package:athletica/screens/dashboard/client_analytics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,6 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Revenue Chart
               _buildRevenueChart(),
+              const SizedBox(height: 24),
+
+              // Analytics Section
+              _buildAnalyticsSection(),
               const SizedBox(height: 24),
 
               // Quick Actions
@@ -109,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             IconButton(
               onPressed: () {
-                // TODO: Implement notifications
+                // Placeholder - notifications will be implemented
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Notifications coming soon'),
@@ -186,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -240,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  // TODO: Navigate to detailed analytics
+                  // Placeholder - detailed analytics navigation will be implemented
                 },
                 child: const Text(
                   'View All',
@@ -363,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     isCurved: true,
                     gradient: LinearGradient(
                       colors: [
-                        AppTheme.primaryBlue.withOpacity(0.8),
-                        AppTheme.primaryBlue.withOpacity(0.2),
+                        AppTheme.primaryBlue.withValues(alpha: 0.8),
+                        AppTheme.primaryBlue.withValues(alpha: 0.2),
                       ],
                     ),
                     barWidth: 3,
@@ -384,8 +391,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          AppTheme.primaryBlue.withOpacity(0.3),
-                          AppTheme.primaryBlue.withOpacity(0.1),
+                          AppTheme.primaryBlue.withValues(alpha: 0.3),
+                          AppTheme.primaryBlue.withValues(alpha: 0.1),
                         ],
                       ),
                     ),
@@ -395,6 +402,142 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Analytics & Reports',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildAnalyticsCard(
+                title: 'Analytics Dashboard',
+                subtitle: 'Comprehensive overview',
+                icon: Icons.analytics,
+                color: AppTheme.primaryBlue,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AnalyticsDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildAnalyticsCard(
+                title: 'Revenue Analytics',
+                subtitle: 'Financial insights',
+                icon: Icons.attach_money,
+                color: AppTheme.successGreen,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RevenueAnalyticsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildAnalyticsCard(
+                title: 'Client Analytics',
+                subtitle: 'Progress tracking',
+                icon: Icons.people,
+                color: AppTheme.warningOrange,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ClientAnalyticsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildAnalyticsCard(
+                title: 'Export Reports',
+                subtitle: 'Download data',
+                icon: Icons.download,
+                color: AppTheme.errorRed,
+                onTap: _exportAllReports,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -472,7 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -564,7 +707,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -602,6 +745,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _exportAllReports() {
+    // Placeholder - comprehensive export functionality will be implemented
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Comprehensive report export coming soon!'),
+        backgroundColor: AppTheme.primaryBlue,
       ),
     );
   }

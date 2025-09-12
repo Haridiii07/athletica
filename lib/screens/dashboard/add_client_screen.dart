@@ -362,10 +362,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
       final client = Client(
         id: widget.client?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId: Provider.of<AuthProvider>(context, listen: false)
-                .coach
-                ?.id ??
-            '',
+        coachId:
+            Provider.of<AuthProvider>(context, listen: false).coach?.id ?? '',
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim().isNotEmpty

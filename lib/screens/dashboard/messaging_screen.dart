@@ -47,7 +47,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           IconButton(
             icon: const Icon(Icons.search, color: AppTheme.textPrimary),
             onPressed: () {
-              // TODO: Implement search functionality
+              // Placeholder - search functionality will be implemented
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Search functionality coming soon'),

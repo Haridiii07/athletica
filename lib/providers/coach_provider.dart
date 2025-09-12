@@ -162,4 +162,41 @@ class CoachProvider extends ChangeNotifier {
     _plans.clear();
     notifyListeners();
   }
+
+  // Client-specific methods for detailed views
+  List<Plan> getClientPlans(String clientId) {
+    // In a real implementation, plans would be associated with clients
+    // For now, we'll return all active plans as potential plans for the client
+    return _plans.where((plan) => plan.isActive).toList();
+  }
+
+  Future<void> loadClientPlans(String clientId) async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      // In a real implementation, this would fetch plans for a specific client
+      // For now, we'll just ensure plans are loaded
+      await loadPlans();
+      _setLoading(false);
+    } catch (e) {
+      _error = 'Failed to load client plans: $e';
+      _setLoading(false);
+    }
+  }
+
+  Future<void> loadClientProgress(String clientId) async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      // In a real implementation, this would fetch progress data for a specific client
+      // For now, we'll simulate loading
+      await Future.delayed(const Duration(seconds: 1));
+      _setLoading(false);
+    } catch (e) {
+      _error = 'Failed to load client progress: $e';
+      _setLoading(false);
+    }
+  }
 }
