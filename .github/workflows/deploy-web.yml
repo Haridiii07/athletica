@@ -2,7 +2,7 @@ name: Deploy Athletica Web to GitHub Pages
 
 on:
   push:
-    branches: [ web-version ]
+    branches: [ web-app-fixed ]
   workflow_dispatch:
 
 permissions:
