@@ -1,37 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/client.dart';
-import 'package:athletica/models/plan.dart';
-import 'package:athletica/screens/dashboard/client_progress_screen.dart';
-import 'package:athletica/screens/dashboard/chat_screen.dart';
-import 'package:athletica/screens/dashboard/add_client_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/client.dart';
+import 'package:athletica/data/models/plan.dart';
 import 'package:athletica/utils/theme.dart';
 
-class ClientDetailsScreen extends StatefulWidget {
-  final Client client;
+class ClientDetailsScreen extends ConsumerWidget {
+  final String clientId;
 
   const ClientDetailsScreen({
     super.key,
-    required this.client,
+    required this.clientId,
   });
 
   @override
-  State<ClientDetailsScreen> createState() => _ClientDetailsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clientAsync = ref.watch(clientDetailsProvider(clientId));
 
-class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClientPlans(widget.client.id);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
@@ -39,7 +25,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Client Details',
@@ -51,7 +37,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: AppTheme.textPrimary),
-            onSelected: (value) => _handleAction(value),
+            onSelected: (value) => _handleAction(context, ref, value, clientAsync),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'edit',
@@ -87,36 +73,76 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Client Profile Header
-            _buildClientHeader(),
-            const SizedBox(height: 24),
-
-            // Client Information
-            _buildClientInfo(),
-            const SizedBox(height: 24),
-
-            // Current Plan
-            _buildCurrentPlan(),
-            const SizedBox(height: 24),
-
-            // Quick Actions
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-
-            // Recent Activity
-            _buildRecentActivity(),
-          ],
+      body: clientAsync.when(
+        data: (client) => _buildContent(context, ref, client),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error loading client: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(clientDetailsProvider(clientId)),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildClientHeader() {
+  Widget _buildContent(BuildContext context, WidgetRef ref, Client client) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Client Profile Header
+          _buildClientHeader(context, client),
+          const SizedBox(height: 24),
+
+          // Client Information
+          _buildClientInfo(context, client),
+          const SizedBox(height: 24),
+
+          // Current Plan
+          _buildCurrentPlan(context, ref, client),
+          const SizedBox(height: 24),
+
+          // Quick Actions
+          _buildQuickActions(context, client),
+          const SizedBox(height: 24),
+
+          // Recent Activity
+          _buildRecentActivity(context),
+        ],
+      ),
+    );
+  }
+
+  static void _handleAction(BuildContext context, WidgetRef ref, String action, AsyncValue<Client> clientAsync) {
+    final client = clientAsync.value;
+    if (client == null) return;
+
+    switch (action) {
+      case 'edit':
+        context.push('/clients/${client.id}/edit');
+        break;
+      case 'message':
+        context.push('/chat/${client.id}');
+        break;
+      case 'progress':
+        context.push('/clients/${client.id}/progress');
+        break;
+    }
+  }
+
+  Widget _buildClientHeader(BuildContext context, Client client) {
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -132,12 +158,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               CircleAvatar(
                 radius: 40,
                 backgroundColor: AppTheme.primaryBlue,
-                backgroundImage: widget.client.profilePhotoUrl != null
-                    ? NetworkImage(widget.client.profilePhotoUrl!)
+                backgroundImage: client.profilePhotoUrl != null
+                    ? NetworkImage(client.profilePhotoUrl!)
                     : null,
-                child: widget.client.profilePhotoUrl == null
+                child: client.profilePhotoUrl == null
                     ? Text(
-                        widget.client.name.substring(0, 1).toUpperCase(),
+                        client.name.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -152,7 +178,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.client.name,
+                      client.name,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 color: AppTheme.textPrimary,
@@ -161,13 +187,13 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      widget.client.email ?? 'No email',
+                      client.email ?? 'No email',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textSecondary,
                           ),
                     ),
                     const SizedBox(height: 8),
-                    _buildStatusChip(widget.client.status),
+                    _buildStatusChip(context, client.status),
                   ],
                 ),
               ),
@@ -180,8 +206,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Progress',
-                  '${widget.client.subscriptionStatus}%',
+                  '${client.subscriptionStatus}%',
                   Icons.trending_up,
                   AppTheme.successGreen,
                 ),
@@ -189,8 +216,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Sessions',
-                  '${widget.client.sessionHistory.length}',
+                  '${client.sessionHistory.length}',
                   Icons.fitness_center,
                   AppTheme.primaryBlue,
                 ),
@@ -198,8 +226,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Duration',
-                  '${DateTime.now().difference(widget.client.joinedAt).inDays} days',
+                  '${DateTime.now().difference(client.joinedAt).inDays} days',
                   Icons.calendar_today,
                   AppTheme.warningOrange,
                 ),
@@ -212,7 +241,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   }
 
   Widget _buildStatCard(
-      String label, String value, IconData icon, Color color) {
+      BuildContext context, String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -244,7 +273,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildClientInfo() {
+  Widget _buildClientInfo(BuildContext context, Client client) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -263,21 +292,21 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow('Phone', widget.client.phone ?? 'Not provided'),
+          _buildInfoRow(context, 'Phone', client.phone ?? 'Not provided'),
           _buildInfoRow(
-              'Age', '${widget.client.stats['age'] ?? 'Not specified'} years'),
+              context, 'Age', '${client.stats['age'] ?? 'Not specified'} years'),
           _buildInfoRow(
-              'Gender', widget.client.stats['gender'] ?? 'Not specified'),
+              context, 'Gender', client.stats['gender'] ?? 'Not specified'),
           _buildInfoRow(
-              'Goals', widget.client.goals['fitnessGoals'] ?? 'Not specified'),
-          _buildInfoRow('Join Date', _formatDate(widget.client.joinedAt)),
-          _buildInfoRow('Last Active', _formatDate(widget.client.lastSession)),
+              context, 'Goals', client.goals['fitnessGoals'] ?? 'Not specified'),
+          _buildInfoRow(context, 'Join Date', _formatDate(client.joinedAt)),
+          _buildInfoRow(context, 'Last Active', _formatDate(client.lastSession)),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -306,7 +335,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildCurrentPlan() {
+  Widget _buildCurrentPlan(BuildContext context, WidgetRef ref, Client client) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -339,32 +368,25 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              if (coachProvider.isLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: AppTheme.primaryBlue,
-                  ),
-                );
-              }
-
-              final clientPlans =
-                  coachProvider.getClientPlans(widget.client.id);
+          ref.watch(plansProvider).when(
+            data: (plans) {
+              final clientPlans = plans.where((p) => p.isActive).toList();
               if (clientPlans.isEmpty) {
-                return _buildNoPlanState();
+                return _buildNoPlanState(context);
               }
-
-              final currentPlan = clientPlans.first;
-              return _buildPlanCard(currentPlan);
+              return _buildPlanCard(context, clientPlans.first);
             },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+            ),
+            error: (error, stack) => Text('Error: $error'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNoPlanState() {
+  Widget _buildNoPlanState(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -411,7 +433,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildPlanCard(Plan plan) {
+  Widget _buildPlanCard(BuildContext context, Plan plan) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -449,11 +471,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildPlanStat('Duration', '${plan.duration} weeks'),
+              _buildPlanStat(context, 'Duration', '${plan.duration} weeks'),
               const SizedBox(width: 16),
-              _buildPlanStat('Features', '${plan.features.length}'),
+              _buildPlanStat(context, 'Features', '${plan.features.length}'),
               const SizedBox(width: 16),
-              _buildPlanStat('Status', plan.status),
+              _buildPlanStat(context, 'Status', plan.status),
             ],
           ),
         ],
@@ -461,7 +483,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildPlanStat(String label, String value) {
+  Widget _buildPlanStat(BuildContext context, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -482,7 +504,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context, Client client) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -508,12 +530,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   'View Progress',
                   Icons.trending_up,
                   AppTheme.successGreen,
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ClientProgressScreen(client: widget.client),
-                    ),
-                  ),
+                  () => context.push('/clients/${client.id}/progress'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -522,11 +539,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   'Send Message',
                   Icons.message,
                   AppTheme.primaryBlue,
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ChatScreen(client: widget.client),
-                    ),
-                  ),
+                  () => context.push('/chat/${client.id}'),
                 ),
               ),
             ],
@@ -539,11 +552,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   'Edit Profile',
                   Icons.edit,
                   AppTheme.warningOrange,
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AddClientScreen(client: widget.client),
-                    ),
-                  ),
+                  () => context.push('/clients/${client.id}/edit'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -552,9 +561,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   'Create Plan',
                   Icons.add_circle,
                   AppTheme.errorRed,
-                  () {
-                    // Placeholder - create plan navigation will be implemented
-                  },
+                  () => context.push('/plans/create'),
                 ),
               ),
             ],
@@ -583,7 +590,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -603,6 +610,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           ),
           const SizedBox(height: 16),
           _buildActivityItem(
+            context,
             'Completed workout session',
             'Strength Training - Day 3',
             '2 hours ago',
@@ -610,6 +618,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             AppTheme.successGreen,
           ),
           _buildActivityItem(
+            context,
             'Updated progress',
             'Weight: 75kg → 74kg',
             '1 day ago',
@@ -617,6 +626,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             AppTheme.primaryBlue,
           ),
           _buildActivityItem(
+            context,
             'Sent message',
             'How is the new routine going?',
             '2 days ago',
@@ -629,7 +639,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   }
 
   Widget _buildActivityItem(
-      String title, String subtitle, String time, IconData icon, Color color) {
+      BuildContext context, String title, String subtitle, String time, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -674,7 +684,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChip(BuildContext context, String status) {
     Color color;
     String label;
 
@@ -719,29 +729,4 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _handleAction(String action) {
-    switch (action) {
-      case 'edit':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => AddClientScreen(client: widget.client),
-          ),
-        );
-        break;
-      case 'message':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(client: widget.client),
-          ),
-        );
-        break;
-      case 'progress':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ClientProgressScreen(client: widget.client),
-          ),
-        );
-        break;
-    }
-  }
 }

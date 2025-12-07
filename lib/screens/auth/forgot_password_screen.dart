@@ -1,38 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/utils/exceptions.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isEmailSent = false;
 
   /// Show error message with appropriate styling based on exception type
-  void _showErrorMessage(AuthProvider authProvider) {
+  void _showErrorMessage(Object error) {
     if (!mounted) return;
 
     String message;
     Color backgroundColor;
     IconData icon;
+    bool isNetworkError = false;
 
-    if (authProvider.isNetworkError) {
-      message = authProvider.error ?? 'Network error occurred';
+    if (error is NetworkException) {
+      message = error.message;
       backgroundColor = AppTheme.warningOrange;
       icon = Icons.wifi_off_outlined;
-    } else if (authProvider.isValidationError) {
-      message = authProvider.error ?? 'Invalid email address';
+      isNetworkError = true;
+    } else if (error is ValidationException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     } else {
-      message = authProvider.error ?? 'Failed to send reset link';
+      message = error.toString();
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     }
@@ -47,10 +51,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ],
         ),
         backgroundColor: backgroundColor,
-        duration: authProvider.isNetworkError
+        duration: isNetworkError
             ? const Duration(seconds: 5)
             : const Duration(seconds: 3),
-        action: authProvider.isNetworkError
+        action: isNetworkError
             ? SnackBarAction(
                 label: 'Retry',
                 textColor: Colors.white,
@@ -70,30 +74,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final email = _emailController.text.trim();
+    final authRepository = ref.read(authRepositoryProvider);
 
-    final success = await authProvider.forgotPassword(
-      email: _emailController.text.trim(),
-    );
+    try {
+      await authRepository.forgotPassword(email: email);
+      
+      if (mounted) {
+        setState(() {
+          _isEmailSent = true;
+        });
 
-    if (success && mounted) {
-      setState(() {
-        _isEmailSent = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset link sent to your email'),
-          backgroundColor: AppTheme.successGreen,
-        ),
-      );
-    } else if (mounted) {
-      _showErrorMessage(authProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset link sent to your email'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage(e);
+      }
     }
   }
 
   void _backToSignIn() {
-    Navigator.of(context).pop();
+    context.pop();
   }
 
   @override
@@ -105,7 +112,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -160,42 +167,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 40),
 
                   // Send Reset Link Button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed:
-                              authProvider.isLoading ? null : _sendResetLink,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryBlue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: authProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  'Send Reset Link',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _sendResetLink,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    },
+                      ),
+                      child: Text(
+                        'Send Reset Link',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ] else ...[
                   // Success Icon and Message

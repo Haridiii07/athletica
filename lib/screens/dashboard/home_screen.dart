@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
@@ -10,23 +11,22 @@ import 'package:athletica/screens/dashboard/analytics_dashboard_screen.dart';
 import 'package:athletica/screens/dashboard/revenue_analytics_screen.dart';
 import 'package:athletica/screens/dashboard/client_analytics_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      if (authProvider.coach != null) {
-        coachProvider.loadClients();
-        coachProvider.loadPlans();
+      final authState = ref.read(authStateProvider);
+      if (authState.valueOrNull != null) {
+        ref.read(coachProvider.notifier).loadClients();
+        ref.read(coachProvider.notifier).loadPlans();
       }
     });
   }
@@ -71,104 +71,100 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        return Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: AppTheme.primaryBlue,
-              backgroundImage: authProvider.coach?.profilePhotoUrl != null
-                  ? NetworkImage(authProvider.coach!.profilePhotoUrl!)
-                  : null,
-              child: authProvider.coach?.profilePhotoUrl == null
-                  ? Text(
-                      authProvider.coach?.name.substring(0, 1).toUpperCase() ??
-                          'A',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Welcome back,',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+    final coachAsync = ref.watch(currentCoachProvider);
+    final coach = coachAsync.valueOrNull;
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 24,
+          backgroundColor: AppTheme.primaryBlue,
+          backgroundImage: coach?.profilePhotoUrl != null
+              ? NetworkImage(coach!.profilePhotoUrl!)
+              : null,
+          child: coach?.profilePhotoUrl == null
+              ? Text(
+                  (coach?.name.isNotEmpty == true ? coach!.name.substring(0, 1).toUpperCase() : 'A'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
-                  Text(
-                    authProvider.coach?.name ?? 'Coach',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
+                )
+              : null,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome back,',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
               ),
-            ),
-            IconButton(
-              onPressed: () {
-                // Placeholder - notifications will be implemented
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Notifications coming soon'),
-                    backgroundColor: AppTheme.warningOrange,
-                  ),
-                );
-              },
-              icon: const Icon(
-                Icons.notifications_outlined,
-                color: AppTheme.textPrimary,
+              Text(
+                coach?.name ?? 'Coach',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            // Placeholder - notifications will be implemented
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Notifications coming soon'),
+                backgroundColor: AppTheme.warningOrange,
+              ),
+            );
+          },
+          icon: const Icon(
+            Icons.notifications_outlined,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildQuickStats() {
-    return Consumer<CoachProvider>(
-      builder: (context, coachProvider, child) {
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                title: 'Total Clients',
-                value: '${coachProvider.totalClients}',
-                icon: Icons.people,
-                color: AppTheme.primaryBlue,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                title: 'Active Clients',
-                value: '${coachProvider.activeClients}',
-                icon: Icons.check_circle,
-                color: AppTheme.successGreen,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                title: 'Revenue',
-                value: '${coachProvider.totalRevenue.toStringAsFixed(0)} EGP',
-                icon: Icons.attach_money,
-                color: AppTheme.warningOrange,
-              ),
-            ),
-          ],
-        );
-      },
+    final coachState = ref.watch(coachProvider);
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            title: 'Total Clients',
+            value: '${coachState.clients.length}',
+            icon: Icons.people,
+            color: AppTheme.primaryBlue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            title: 'Active Clients',
+            value: '${coachState.clients.where((c) => c.status == 'active').length}',
+            icon: Icons.check_circle,
+            color: AppTheme.successGreen,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            title: 'Revenue',
+            value: '0 EGP', // Placeholder for revenue
+            icon: Icons.attach_money,
+            color: AppTheme.warningOrange,
+          ),
+        ),
+      ],
     );
   }
 

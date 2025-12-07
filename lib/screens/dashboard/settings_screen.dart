@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/widgets/platform_widgets.dart';
 import 'package:athletica/screens/dashboard/notification_settings_screen.dart';
@@ -11,14 +12,14 @@ import 'package:athletica/screens/dashboard/help_support_screen.dart';
 import 'package:athletica/screens/dashboard/about_us_screen.dart';
 import 'package:athletica/screens/dashboard/contact_us_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SingleChildScrollView(
@@ -194,82 +195,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildProfileSection() {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderColor),
+    final coachState = ref.watch(currentCoachProvider);
+    final coach = coachState.valueOrNull;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: AppTheme.primaryBlue,
+            backgroundImage: coach?.profilePhotoUrl != null
+                ? NetworkImage(coach!.profilePhotoUrl!)
+                : null,
+            child: coach?.profilePhotoUrl == null
+                ? Text(
+                    coach?.name.substring(0, 1).toUpperCase() ?? 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  )
+                : null,
           ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppTheme.primaryBlue,
-                backgroundImage: authProvider.coach?.profilePhotoUrl != null
-                    ? NetworkImage(authProvider.coach!.profilePhotoUrl!)
-                    : null,
-                child: authProvider.coach?.profilePhotoUrl == null
-                    ? Text(
-                        authProvider.coach!.name.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      authProvider.coach?.name ?? 'User',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppTheme.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      authProvider.coach?.email ?? 'user@example.com',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  coach?.name ?? 'User',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Text(
-                        authProvider.coach?.subscriptionTier.toUpperCase() ??
-                            'FREE',
-                        style: const TextStyle(
-                          color: AppTheme.primaryBlue,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-              IconButton(
-                onPressed: _editProfile,
-                icon: const Icon(Icons.edit, color: AppTheme.textSecondary),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  coach?.email ?? 'user@example.com',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    coach?.subscriptionTier.toUpperCase() ?? 'FREE',
+                    style: const TextStyle(
+                      color: AppTheme.primaryBlue,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+          IconButton(
+            onPressed: _editProfile,
+            icon: const Icon(Icons.edit, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 
@@ -325,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
@@ -554,11 +553,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           text: 'Logout',
           onPressed: () {
             Navigator.of(context).pop();
-            final authProvider =
-                Provider.of<AuthProvider>(context, listen: false);
-            authProvider.signOut();
-            Navigator.of(context)
-                .pushNamedAndRemoveUntil('/', (route) => false);
+            ref.read(authRepositoryProvider).signOut();
+            context.go('/auth/signin');
           },
           isDestructive: true,
         ),

@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/plan.dart';
-import 'package:athletica/models/exercise.dart';
-import 'package:athletica/utils/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/screens/dashboard/exercise_library_screen.dart';
+import 'package:athletica/utils/theme.dart';
+import 'package:athletica/data/models/plan.dart';
+import 'package:athletica/data/models/exercise.dart' as data_models;
+import 'package:athletica/data/models/exercise.dart' as old_models;
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 import 'package:athletica/screens/dashboard/workout_template_screen.dart';
+import 'package:athletica/screens/dashboard/exercise_library_screen.dart';
 
-class CreatePlanScreen extends StatefulWidget {
-  final Plan? plan; // For editing existing plan
+class CreatePlanScreen extends ConsumerStatefulWidget {
+  final String? planId; // For editing existing plan
 
-  const CreatePlanScreen({super.key, this.plan});
+  const CreatePlanScreen({super.key, this.planId});
 
   @override
-  State<CreatePlanScreen> createState() => _CreatePlanScreenState();
+  ConsumerState<CreatePlanScreen> createState() => _CreatePlanScreenState();
 }
 
-class _CreatePlanScreenState extends State<CreatePlanScreen> {
+class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -31,21 +33,34 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
   final ImagePicker _picker = ImagePicker();
   final List<String> _features = [];
   final TextEditingController _featureController = TextEditingController();
-  final List<ExerciseSet> _exercises = [];
+  final List<data_models.ExerciseSet> _exercises = [];
 
   final List<String> _statusOptions = ['draft', 'active', 'archived'];
 
   @override
   void initState() {
     super.initState();
-    if (widget.plan != null) {
-      _nameController.text = widget.plan!.name;
-      _descriptionController.text = widget.plan!.description;
-      _durationController.text = widget.plan!.duration.toString();
-      _priceController.text = widget.plan!.price.toString();
-      _selectedStatus = widget.plan!.status;
-      _imagePath = widget.plan!.imageUrl;
-      _features.addAll(widget.plan!.features);
+    // Load plan data if planId is provided
+    if (widget.planId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadPlanData(widget.planId!);
+      });
+    }
+  }
+
+  Future<void> _loadPlanData(String planId) async {
+    try {
+      final planAsync = await ref.read(planDetailsProvider(planId).future);
+      _nameController.text = planAsync.name;
+      _descriptionController.text = planAsync.description;
+      _durationController.text = planAsync.duration.toString();
+      _priceController.text = planAsync.price.toString();
+      _selectedStatus = planAsync.status;
+      _imagePath = planAsync.imageUrl;
+      _features.addAll(planAsync.features);
+      if (mounted) setState(() {});
+    } catch (e) {
+      // Handle error
     }
   }
 
@@ -61,7 +76,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.plan != null;
+    final isEditing = widget.planId != null;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -74,7 +89,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         actions: [
           if (isEditing)
@@ -678,7 +693,7 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.textSecondary,
               side: const BorderSide(color: AppTheme.borderColor),
@@ -750,12 +765,16 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
   }
 
   void _openExerciseLibrary() async {
-    final result = await Navigator.of(context).push<Exercise>(
+    // TODO: Implement exercise library navigation with go_router
+    // For now, using Navigator as a temporary solution
+    final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder: (_) => ExerciseLibraryScreen(
-          onExerciseSelected: _toggleExercise,
+          onExerciseSelected: (exercise) {
+            _toggleExercise(exercise);
+          },
           selectedExercises: _exercises
-              .map((e) => Exercise(
+              .map((e) => old_models.Exercise(
                     id: e.exerciseId,
                     name: e.exerciseName,
                     description: '',
@@ -769,22 +788,25 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
       ),
     );
 
-    if (result != null) {
+    if (result != null && result is old_models.Exercise) {
       _addExerciseFromLibrary(result);
     }
   }
 
   void _openWorkoutTemplates() async {
-    await Navigator.of(context).push<WorkoutTemplate>(
+    // TODO: Implement workout template navigation with go_router
+    await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder: (_) => WorkoutTemplateScreen(
-          onTemplateSelected: _useWorkoutTemplate,
+          onTemplateSelected: (template) {
+            _useWorkoutTemplate(template);
+          },
         ),
       ),
     );
   }
 
-  void _toggleExercise(Exercise exercise) {
+  void _toggleExercise(old_models.Exercise exercise) {
     setState(() {
       final existingIndex =
           _exercises.indexWhere((e) => e.exerciseId == exercise.id);
@@ -796,8 +818,8 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
     });
   }
 
-  void _addExerciseFromLibrary(Exercise exercise) {
-    final exerciseSet = ExerciseSet(
+  void _addExerciseFromLibrary(old_models.Exercise exercise) {
+    final exerciseSet = data_models.ExerciseSet(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       exerciseId: exercise.id,
       exerciseName: exercise.name,
@@ -812,10 +834,21 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
     });
   }
 
-  void _useWorkoutTemplate(WorkoutTemplate template) {
+  void _useWorkoutTemplate(old_models.WorkoutTemplate template) {
     setState(() {
       _exercises.clear();
-      _exercises.addAll(template.exercises);
+      // Convert old ExerciseSet to new ExerciseSet
+      for (final oldExerciseSet in template.exercises) {
+        _exercises.add(data_models.ExerciseSet(
+          id: oldExerciseSet.id,
+          exerciseId: oldExerciseSet.exerciseId,
+          exerciseName: oldExerciseSet.exerciseName,
+          reps: oldExerciseSet.reps,
+          duration: oldExerciseSet.duration,
+          restTime: oldExerciseSet.restTime,
+          order: oldExerciseSet.order,
+        ));
+      }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -843,12 +876,16 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
     }
 
     try {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
+      // Get coach ID from coach provider
+      final coach = await ref.read(currentCoachProvider.future);
+      final coachId = coach?.id;
+      if (coachId == null) {
+        throw Exception('Coach not found');
+      }
 
       final plan = Plan(
-        id: widget.plan?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId:
-            Provider.of<AuthProvider>(context, listen: false).coach?.id ?? '',
+        id: widget.planId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        coachId: coachId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         imageUrl: _imagePath,
@@ -856,43 +893,59 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
         price: double.parse(_priceController.text),
         features: _features,
         status: _selectedStatus,
-        createdAt: widget.plan?.createdAt ?? DateTime.now(),
-        expiresAt: widget.plan?.expiresAt,
-        clientCount: widget.plan?.clientCount ?? 0,
-        successRate: widget.plan?.successRate ?? 0.0,
-        revenue: widget.plan?.revenue ?? 0.0,
+        createdAt: DateTime.now(),
+        expiresAt: null,
+        clientCount: 0,
+        successRate: 0.0,
+        revenue: 0.0,
       );
 
-      if (widget.plan != null) {
-        await coachProvider.updatePlan(plan);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Plan updated successfully'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
+      if (widget.planId != null) {
+        // Update existing plan
+        final updateUseCase = ref.read(updatePlanUseCaseProvider);
+        await updateUseCase.call(plan);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Plan updated successfully'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+        }
       } else {
-        await coachProvider.addPlan(plan);
+        // Create new plan
+        final addUseCase = ref.read(addPlanUseCaseProvider);
+        await addUseCase.call(plan);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Plan created successfully'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+        }
+      }
+
+      // Invalidate plans provider to refresh list
+      ref.invalidate(plansProvider);
+      if (mounted) {
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Plan created successfully'),
-            backgroundColor: AppTheme.successGreen,
+          SnackBar(
+            content: Text('Error saving plan: $e'),
+            backgroundColor: AppTheme.errorRed,
           ),
         );
       }
-
-      Navigator.of(context).pop();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving plan: $e'),
-          backgroundColor: AppTheme.errorRed,
-        ),
-      );
     }
   }
 
   void _showDeleteConfirmation() {
+    if (widget.planId == null) return;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -901,13 +954,13 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
           'Delete Plan',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
-        content: Text(
-          'Are you sure you want to delete "${widget.plan?.name}"? This action cannot be undone.',
-          style: const TextStyle(color: AppTheme.textSecondary),
+        content: const Text(
+          'Are you sure you want to delete this plan? This action cannot be undone.',
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
@@ -915,25 +968,29 @@ class _CreatePlanScreenState extends State<CreatePlanScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              context.pop();
               try {
-                final coachProvider =
-                    Provider.of<CoachProvider>(context, listen: false);
-                await coachProvider.deletePlan(widget.plan!.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Plan deleted successfully'),
-                    backgroundColor: AppTheme.successGreen,
-                  ),
-                );
-                Navigator.of(context).pop();
+                final deleteUseCase = ref.read(deletePlanUseCaseProvider);
+                await deleteUseCase.call(widget.planId!);
+                ref.invalidate(plansProvider);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Plan deleted successfully'),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                  context.pop();
+                }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error deleting plan: $e'),
-                    backgroundColor: AppTheme.errorRed,
-                  ),
-                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting plan: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(

@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:athletica/models/client.dart';
-import 'package:athletica/models/message.dart';
-import 'package:athletica/utils/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/utils/theme.dart';
+import 'package:athletica/data/models/client.dart';
+import 'package:athletica/data/models/message.dart'; // Assuming this exists
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart'; // Likely needed for coach ID
 
-class ChatScreen extends StatefulWidget {
-  final Client client;
+class ChatScreen extends ConsumerStatefulWidget {
+  final String? clientId;  // Changed from Client to clientId for Riverpod migration
 
-  const ChatScreen({super.key, required this.client});
+  const ChatScreen({super.key, this.clientId});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
@@ -36,66 +38,98 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _loadMessages() {
+  Future<void> _loadMessages() async {
+    if (widget.clientId == null) return;
+    
+    final coach = await ref.read(currentCoachProvider.future);
+    final coachId = coach?.id ?? 'coach_id';
+    
     // Mock messages - in real app, this would come from API
-    _messages = [
-      Message(
-        id: '1',
-        senderId: widget.client.id,
-        receiverId:
-            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-                'coach_id',
-        content: 'Hello! I\'m excited to start my fitness journey with you.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: true,
-      ),
-      Message(
-        id: '2',
-        senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-            'coach_id',
-        receiverId: widget.client.id,
-        content:
-            'Welcome! I\'m here to help you achieve your fitness goals. Let\'s start with a consultation.',
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
-        isRead: true,
-      ),
-      Message(
-        id: '3',
-        senderId: widget.client.id,
-        receiverId:
-            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-                'coach_id',
-        content: 'That sounds great! When can we schedule our first session?',
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
-        isRead: true,
-      ),
-      Message(
-        id: '4',
-        senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-            'coach_id',
-        receiverId: widget.client.id,
-        content:
-            'How about tomorrow at 6 PM? I\'ll send you the workout plan after our session.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        isRead: true,
-      ),
-      Message(
-        id: '5',
-        senderId: widget.client.id,
-        receiverId:
-            Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-                'coach_id',
-        content: 'Perfect! I\'ll be there. Thank you for the quick response.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-        isRead: false,
-      ),
-    ];
+    if (mounted) {
+      setState(() {
+        _messages = [
+          Message(
+            id: '1',
+            senderId: widget.clientId!,
+            receiverId: coachId,
+            content: 'Hello! I\'m excited to start my fitness journey with you.',
+            timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+            isRead: true,
+          ),
+          Message(
+            id: '2',
+            senderId: coachId,
+            receiverId: widget.clientId!,
+            content:
+                'Welcome! I\'m here to help you achieve your fitness goals. Let\'s start with a consultation.',
+            timestamp:
+                DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
+            isRead: true,
+          ),
+          Message(
+            id: '3',
+            senderId: widget.clientId!,
+            receiverId: coachId,
+            content: 'That sounds great! When can we schedule our first session?',
+            timestamp:
+                DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+            isRead: true,
+          ),
+          Message(
+            id: '4',
+            senderId: coachId,
+            receiverId: widget.clientId!,
+            content:
+                'How about tomorrow at 6 PM? I\'ll send you the workout plan after our session.',
+            timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
+            isRead: true,
+          ),
+          Message(
+            id: '5',
+            senderId: widget.clientId!,
+            receiverId: coachId,
+            content: 'Perfect! I\'ll be there. Thank you for the quick response.',
+            timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+            isRead: false,
+          ),
+        ];
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.clientId == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        appBar: AppBar(
+          title: const Text('Chat'),
+          backgroundColor: AppTheme.darkBackground,
+        ),
+        body: const Center(
+          child: Text('Select a client to start chatting'),
+        ),
+      );
+    }
+
+    final clientAsync = ref.watch(clientDetailsProvider(widget.clientId!));
+    
+    return clientAsync.when(
+      data: (client) => _buildChatScreen(context, client),
+      loading: () => Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        body: Center(
+          child: Text('Error loading client: $error'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatScreen(BuildContext context, Client client) {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
@@ -104,12 +138,12 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: AppTheme.primaryBlue,
-              backgroundImage: widget.client.profilePhotoUrl != null
-                  ? NetworkImage(widget.client.profilePhotoUrl!)
+              backgroundImage: client.profilePhotoUrl != null
+                  ? NetworkImage(client.profilePhotoUrl!)
                   : null,
-              child: widget.client.profilePhotoUrl == null
+              child: client.profilePhotoUrl == null
                   ? Text(
-                      widget.client.name.substring(0, 1).toUpperCase(),
+                      client.name.substring(0, 1).toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -124,7 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.client.name,
+                    client.name,
                     style: const TextStyle(
                       color: AppTheme.textPrimary,
                       fontSize: 16,
@@ -147,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
@@ -186,12 +220,10 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
-                final isMe = message.senderId ==
-                    (Provider.of<AuthProvider>(context, listen: false)
-                            .coach
-                            ?.id ??
-                        'coach_id');
-                return _buildMessageBubble(message, isMe);
+                final coach = ref.read(currentCoachProvider);
+                final coachId = coach.valueOrNull?.id ?? 'coach_id';
+                final isMe = message.senderId == coachId;
+                return _buildMessageBubble(message, isMe, client);
               },
             ),
           ),
@@ -203,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 children: [
                   Text(
-                    '${widget.client.name} is typing...',
+                    '${client.name} is typing...',
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontStyle: FontStyle.italic,
@@ -220,7 +252,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Message message, bool isMe) {
+  Widget _buildMessageBubble(Message message, bool isMe, Client client) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -232,12 +264,12 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: AppTheme.primaryBlue,
-              backgroundImage: widget.client.profilePhotoUrl != null
-                  ? NetworkImage(widget.client.profilePhotoUrl!)
+              backgroundImage: client.profilePhotoUrl != null
+                  ? NetworkImage(client.profilePhotoUrl!)
                   : null,
-              child: widget.client.profilePhotoUrl == null
+              child: client.profilePhotoUrl == null
                   ? Text(
-                      widget.client.name.substring(0, 1).toUpperCase(),
+                      client.name.substring(0, 1).toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -377,15 +409,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
     final message = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-          'coach_id',
-      receiverId: widget.client.id,
+      senderId: (await ref.read(currentCoachProvider.future))?.id ?? 'coach_id',
+      receiverId: widget.clientId!,
       content: content,
       timestamp: DateTime.now(),
       isRead: false,
@@ -405,7 +436,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _isTyping = true;
         });
 
-        Future.delayed(const Duration(seconds: 3), () {
+        Future.delayed(const Duration(seconds: 3), () async {
           if (mounted) {
             final responses = [
               'Thank you for the message!',
@@ -418,12 +449,12 @@ class _ChatScreenState extends State<ChatScreen> {
             final response =
                 responses[DateTime.now().millisecond % responses.length];
 
+            final coach = await ref.read(currentCoachProvider.future);
+            final coachId = coach?.id ?? 'coach_id';
             final clientMessage = Message(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
-              senderId: widget.client.id,
-              receiverId:
-                  Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-                      'coach_id',
+              senderId: widget.clientId!,
+              receiverId: coachId,
               content: response,
               timestamp: DateTime.now(),
               isRead: true,
@@ -549,12 +580,13 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       if (image != null) {
+        final coach = await ref.read(currentCoachProvider.future);
+        final coachId = coach?.id ?? 'coach_id';
+        
         final message = Message(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          senderId:
-              Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-                  'coach_id',
-          receiverId: widget.client.id,
+          senderId: coachId,
+          receiverId: widget.clientId!,
           content: '📷 Photo',
           timestamp: DateTime.now(),
           type: MessageType.image,
@@ -596,12 +628,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sendWorkoutPlan() {
+  Future<void> _sendWorkoutPlan() async {
+    final coach = await ref.read(currentCoachProvider.future);
+    final coachId = coach?.id ?? 'coach_id';
+    
     final message = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: Provider.of<AuthProvider>(context, listen: false).coach?.id ??
-          'coach_id',
-      receiverId: widget.client.id,
+      senderId: coachId,
+      receiverId: widget.clientId!,
       content: '💪 New workout plan shared!',
       timestamp: DateTime.now(),
       type: MessageType.workout,

@@ -2,6 +2,19 @@
 
 > **Private Flutter project** - Cross-platform fitness trainer management app
 
+## 🚧 **Project Status: Active Development**
+**Current Focus:** Migration to Riverpod & Supabase Integration
+- ✅ **State Management**: Migrated from Provider to Riverpod
+- ✅ **Backend**: Integrated Supabase for Auth & Database
+- ✅ **Compilation**: Resolved all static analysis errors
+
+## 🛑 **Current Critical Issue**
+**The application is currently in a broken state.**
+- **Problem**: Infinite loading on Splash Screen.
+- **Symptoms**: App launches, shows logo and spinner, but never navigates to the Landing Screen.
+- **Investigation**: `main()` executes correctly, but navigation logic in `SplashScreen` or `GoRouter` configuration appears to be failing.
+- **Report**: See [docs/DEBUGGING_REPORT.md](docs/DEBUGGING_REPORT.md) for full investigation details.
+
 ## 🚀 **Quick Start**
 
 ### **Team Access**
@@ -26,9 +39,9 @@ flutter run -d chrome
 ## 🏗️ **Tech Stack**
 
 - **Frontend**: Flutter 3.x with Dart
-- **State Management**: Provider
-- **HTTP Client**: Dio
-- **Authentication**: Multi-platform (Email, Google, Facebook)
+- **State Management**: **Riverpod** (previously Provider)
+- **Backend**: **Supabase** (Auth, Database, Storage)
+- **Routing**: GoRouter
 - **UI**: Arabic-first design with RTL support
 
 ## 📱 **Platforms**

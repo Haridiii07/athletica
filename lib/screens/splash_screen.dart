@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:athletica/screens/landing_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:athletica/utils/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -40,17 +40,26 @@ class _SplashScreenState extends State<SplashScreen>
     ));
 
     _animationController.forward();
-    _checkAuthState();
-  }
-
-  Future<void> _checkAuthState() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      // Skip auth check for frontend testing - go directly to landing screen
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LandingScreen()),
-      );
-    }
+    
+    // Navigate after animation completes
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            try {
+              debugPrint('Navigating to /landing');
+              context.go('/landing');
+            } catch (e) {
+              debugPrint('Navigation error: $e');
+              // Fallback navigation
+              if (mounted) {
+                GoRouter.of(context).go('/landing');
+              }
+            }
+          }
+        });
+      }
+    });
   }
 
   @override

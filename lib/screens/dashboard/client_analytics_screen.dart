@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:athletica/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
 
-class ClientAnalyticsScreen extends StatefulWidget {
+class ClientAnalyticsScreen extends ConsumerStatefulWidget {
   const ClientAnalyticsScreen({super.key});
 
   @override
-  State<ClientAnalyticsScreen> createState() => _ClientAnalyticsScreenState();
+  ConsumerState<ClientAnalyticsScreen> createState() =>
+      _ClientAnalyticsScreenState();
 }
 
-class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
+class _ClientAnalyticsScreenState extends ConsumerState<ClientAnalyticsScreen> {
   String _selectedMetric = 'Progress';
   String _selectedTimeRange = '30 Days';
 
@@ -27,8 +28,7 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClients();
+      ref.read(coachProvider.notifier).loadClients();
     });
   }
 
@@ -95,6 +95,8 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
   }
 
   Widget _buildClientOverview() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -113,60 +115,56 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Column(
+          Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildClientMetricCard(
-                          'Total Clients',
-                          '${coachProvider.totalClients}',
-                          '+3 this month',
-                          Icons.people,
-                          AppTheme.primaryBlue,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildClientMetricCard(
-                          'Active Clients',
-                          '${coachProvider.activeClients}',
-                          '85% retention',
-                          Icons.check_circle,
-                          AppTheme.successGreen,
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: _buildClientMetricCard(
+                      'Total Clients',
+                      '${coachState.totalClients}',
+                      '+3 this month',
+                      Icons.people,
+                      AppTheme.primaryBlue,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildClientMetricCard(
-                          'Avg. Progress',
-                          '${(coachProvider.averageSubscriptionProgress * 100).toInt()}%',
-                          '+5.2%',
-                          Icons.trending_up,
-                          AppTheme.warningOrange,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildClientMetricCard(
-                          'New This Month',
-                          '${coachProvider.clients.where((c) => c.status == 'new').length}',
-                          '+2',
-                          Icons.person_add,
-                          AppTheme.errorRed,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildClientMetricCard(
+                      'Active Clients',
+                      '${coachState.activeClients}',
+                      '85% retention',
+                      Icons.check_circle,
+                      AppTheme.successGreen,
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildClientMetricCard(
+                      'Avg. Progress',
+                      '${(coachState.averageSubscriptionProgress * 100).toInt()}%',
+                      '+5.2%',
+                      Icons.trending_up,
+                      AppTheme.warningOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildClientMetricCard(
+                      'New This Month',
+                      '${coachState.clients.where((c) => c.status == 'new').length}',
+                      '+2',
+                      Icons.person_add,
+                      AppTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -417,6 +415,9 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                           case 3:
                             text = const Text('Week 4', style: style);
                             break;
+                          case 4:
+                            text = const Text('Week 5', style: style);
+                            break;
                           default:
                             text = const Text('', style: style);
                             break;
@@ -494,6 +495,12 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
   }
 
   Widget _buildClientStatusDistribution() {
+    final coachState = ref.watch(coachProvider);
+    final activeClients = coachState.activeClients;
+    final pendingClients = coachState.pendingClients;
+    final totalClients = coachState.totalClients;
+    final inactiveClients = totalClients - activeClients - pendingClients;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -512,62 +519,52 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              final activeClients = coachProvider.activeClients;
-              final pendingClients = coachProvider.pendingClients;
-              final totalClients = coachProvider.totalClients;
-              final inactiveClients =
-                  totalClients - activeClients - pendingClients;
-
-              return Column(
+          Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatusCard(
-                          'Active',
-                          activeClients,
-                          totalClients,
-                          AppTheme.successGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatusCard(
-                          'Pending',
-                          pendingClients,
-                          totalClients,
-                          AppTheme.warningOrange,
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: _buildStatusCard(
+                      'Active',
+                      activeClients,
+                      totalClients,
+                      AppTheme.successGreen,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatusCard(
-                          'Inactive',
-                          inactiveClients,
-                          totalClients,
-                          AppTheme.errorRed,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatusCard(
-                          'Total',
-                          totalClients,
-                          totalClients,
-                          AppTheme.primaryBlue,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatusCard(
+                      'Pending',
+                      pendingClients,
+                      totalClients,
+                      AppTheme.warningOrange,
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatusCard(
+                      'Inactive',
+                      inactiveClients,
+                      totalClients,
+                      AppTheme.errorRed,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatusCard(
+                      'Total',
+                      totalClients,
+                      totalClients,
+                      AppTheme.primaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -615,6 +612,12 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
   }
 
   Widget _buildTopPerformers() {
+    final coachState = ref.watch(coachProvider);
+    final topClients = coachState.clients
+        .where((client) => client.isActive)
+        .toList()
+      ..sort((a, b) => b.subscriptionProgress.compareTo(a.subscriptionProgress));
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -633,122 +636,87 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              final topClients = coachProvider.clients
-                  .where((client) => client.isActive)
-                  .toList()
-                ..sort((a, b) =>
-                    b.subscriptionProgress.compareTo(a.subscriptionProgress));
-
-              if (topClients.isEmpty) {
+          if (topClients.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.borderColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.people_outline,
+                    size: 48,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No active clients yet',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Start adding clients to see performance analytics',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              children: topClients.take(5).map((client) {
                 return Container(
-                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.borderColor.withValues(alpha: 0.1),
+                    color: AppTheme.darkBackground,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.borderColor),
                   ),
-                  child: Column(
+                  child: Row(
                     children: [
-                      const Icon(
-                        Icons.people_outline,
-                        size: 48,
-                        color: AppTheme.textSecondary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No active clients yet',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.textPrimary,
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppTheme.primaryBlue,
+                        backgroundImage: client.profilePhotoUrl != null
+                            ? NetworkImage(client.profilePhotoUrl!)
+                            : null,
+                        child: client.profilePhotoUrl == null
+                            ? Text(
+                                client.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
+                              )
+                            : null,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Start adding clients to see performance analytics',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return Column(
-                children: topClients.take(5).map((client) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.darkBackground,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.borderColor),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppTheme.primaryBlue,
-                          backgroundImage: client.profilePhotoUrl != null
-                              ? NetworkImage(client.profilePhotoUrl!)
-                              : null,
-                          child: client.profilePhotoUrl == null
-                              ? Text(
-                                  client.name.substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                client.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppTheme.textPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                client.email ?? 'No email',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: AppTheme.textSecondary,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${(client.subscriptionProgress * 100).toInt()}%',
+                              client.name,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
                                   ?.copyWith(
-                                    color: AppTheme.successGreen,
+                                    color: AppTheme.textPrimary,
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
+                            const SizedBox(height: 4),
                             Text(
-                              'Progress',
+                              client.email ?? 'No email',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -758,13 +726,34 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${(client.subscriptionProgress * 100).toInt()}%',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: AppTheme.successGreen,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          Text(
+                            'Progress',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.textSecondary,
+                                    ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
         ],
       ),
     );
@@ -842,7 +831,7 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
   }
 
   Widget _buildRetentionCard(
-      String title, String value, String change, IconData icon, Color color) {
+      String title, String value, String subtitle, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -852,13 +841,13 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
               color: color,
-              fontSize: 16,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -868,16 +857,14 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
               color: color,
               fontSize: 12,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            change,
+            subtitle,
             style: TextStyle(
               color: color,
               fontSize: 10,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -904,31 +891,24 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
           ),
           const SizedBox(height: 16),
           _buildActivityItem(
-            'New client joined',
-            'Sarah Johnson signed up for Premium Plan',
+            'New Client',
+            'Sarah Johnson joined your coaching program',
             '2 hours ago',
             Icons.person_add,
             AppTheme.successGreen,
           ),
           _buildActivityItem(
-            'Progress milestone',
-            'Mike Wilson reached 75% progress',
+            'Progress Update',
+            'Mike Wilson updated his weight log',
             '4 hours ago',
-            Icons.emoji_events,
+            Icons.update,
             AppTheme.primaryBlue,
           ),
           _buildActivityItem(
-            'Session completed',
-            'Emma Davis completed Strength Training',
+            'Session Completed',
+            'Emma Davis completed "Leg Day" workout',
             '6 hours ago',
-            Icons.fitness_center,
-            AppTheme.successGreen,
-          ),
-          _buildActivityItem(
-            'Plan renewed',
-            'John Smith renewed Basic Plan',
-            '1 day ago',
-            Icons.refresh,
+            Icons.check_circle,
             AppTheme.warningOrange,
           ),
         ],
@@ -936,17 +916,18 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
     );
   }
 
-  Widget _buildActivityItem(
-      String title, String subtitle, String time, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+  Widget _buildActivityItem(String title, String description, String time,
+      IconData icon, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 16),
           ),
@@ -959,23 +940,26 @@ class _ClientAnalyticsScreenState extends State<ClientAnalyticsScreen> {
                   title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textPrimary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                       ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  subtitle,
+                  description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textGrey,
+                        fontSize: 10,
+                      ),
+                ),
               ],
             ),
-          ),
-          Text(
-            time,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textGrey,
-                ),
           ),
         ],
       ),

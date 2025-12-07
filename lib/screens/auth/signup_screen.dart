@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/screens/auth/profile_photo_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/utils/exceptions.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -23,27 +25,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscureConfirmPassword = true;
 
   /// Show error message with appropriate styling based on exception type
-  void _showErrorMessage(AuthProvider authProvider) {
+  void _showErrorMessage(Object error) {
     if (!mounted) return;
 
     String message;
     Color backgroundColor;
     IconData icon;
+    bool isNetworkError = false;
 
-    if (authProvider.isAuthError) {
-      message = authProvider.error ?? 'Registration failed';
+    if (error is AuthException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.lock_outlined;
-    } else if (authProvider.isNetworkError) {
-      message = authProvider.error ?? 'Network error occurred';
+    } else if (error is NetworkException) {
+      message = error.message;
       backgroundColor = AppTheme.warningOrange;
       icon = Icons.wifi_off_outlined;
-    } else if (authProvider.isValidationError) {
-      message = authProvider.error ?? 'Invalid input provided';
+      isNetworkError = true;
+    } else if (error is ValidationException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     } else {
-      message = authProvider.error ?? 'An unexpected error occurred';
+      message = error.toString();
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     }
@@ -58,10 +62,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ],
         ),
         backgroundColor: backgroundColor,
-        duration: authProvider.isNetworkError
+        duration: isNetworkError
             ? const Duration(seconds: 5)
             : const Duration(seconds: 3),
-        action: authProvider.isNetworkError
+        action: isNetworkError
             ? SnackBarAction(
                 label: 'Retry',
                 textColor: Colors.white,
@@ -85,23 +89,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
 
-    final success = await authProvider.signUp(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const ProfilePhotoScreen(),
-        ),
+    try {
+      await ref.read(
+        signUpProvider(SignUpParams(
+          email: email,
+          password: password,
+          name: name,
+          phone: phone,
+        )).future,
       );
-    } else if (mounted) {
-      _showErrorMessage(authProvider);
+
+      if (mounted) {
+        // Invalidate coach provider to refresh
+        ref.invalidate(coachProvider);
+        // Navigate to profile photo screen
+        context.push('/auth/profile-photo');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage(e);
+      }
     }
   }
 
@@ -114,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -256,42 +268,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 40),
 
                 // Sign Up Button
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _signUp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : Text(
-                                'Create Account',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _signUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-                  },
+                    ),
+                    child: Text(
+                      'Create Account',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -306,7 +304,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.pop(),
                       child: Text(
                         'Sign In',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

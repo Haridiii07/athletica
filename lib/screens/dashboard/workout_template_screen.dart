@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:athletica/models/exercise.dart';
+import 'package:athletica/data/models/exercise.dart';
 import 'package:athletica/utils/theme.dart';
 
 class WorkoutTemplateScreen extends StatefulWidget {

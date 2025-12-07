@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/models/coach.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
+import 'package:athletica/data/models/coach.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -40,8 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _loadCurrentProfile() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final coach = authProvider.coach;
+    final coachState = ref.read(currentCoachProvider);
+    final coach = coachState.valueOrNull;
 
     if (coach != null) {
       _nameController.text = coach.name;
@@ -197,6 +197,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Icons.person,
                       size: 48,
                       color: AppTheme.primaryBlue,
+
                     ),
             ),
           ),
@@ -435,37 +436,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final currentCoach = authProvider.coach;
+      final updateUseCase = ref.read(updateCoachProfileUseCaseProvider);
+      
+      await updateUseCase.call(
+        name: _nameController.text.trim(),
+        bio: _bioController.text.trim().isNotEmpty
+            ? _bioController.text.trim()
+            : null,
+        profilePhotoUrl: _profilePhotoPath,
+      );
 
-      if (currentCoach != null) {
-        final updatedCoach = Coach(
-          id: currentCoach.id,
-          name: _nameController.text.trim(),
-          email: _emailController.text.trim(),
-          phone: _phoneController.text.trim().isNotEmpty
-              ? _phoneController.text.trim()
-              : '',
-          profilePhotoUrl: _profilePhotoPath,
-          bio: _bioController.text.trim().isNotEmpty
-              ? _bioController.text.trim()
-              : '',
-          certificates: currentCoach.certificates,
-          subscriptionTier: currentCoach.subscriptionTier,
-          clientLimit: currentCoach.clientLimit,
-          createdAt: currentCoach.createdAt,
-          lastActive: DateTime.now(),
-          settings: currentCoach.settings,
-        );
+      ref.invalidate(currentCoachProvider);
 
-        // Mock update - in real app this would call the API and update provider
-        authProvider
-          ..clearError()
-          ..updateProfile(
-            name: updatedCoach.name,
-            bio: updatedCoach.bio,
-            profilePhotoUrl: updatedCoach.profilePhotoUrl,
-          );
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
@@ -476,16 +459,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating profile: $e'),
-          backgroundColor: AppTheme.errorRed,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile: $e'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }

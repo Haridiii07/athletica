@@ -1,37 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/client.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/client.dart';
 import 'package:athletica/utils/theme.dart';
 
-class ClientProgressScreen extends StatefulWidget {
-  final Client client;
+class ClientProgressScreen extends ConsumerWidget {
+  final String clientId;
 
   const ClientProgressScreen({
     super.key,
-    required this.client,
+    required this.clientId,
   });
 
   @override
-  State<ClientProgressScreen> createState() => _ClientProgressScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clientAsync = ref.watch(clientDetailsProvider(clientId));
+    
+    return clientAsync.when(
+      data: (client) => _ClientProgressScreenContent(client: client),
+      loading: () => Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error loading client: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(clientDetailsProvider(clientId)),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ClientProgressScreenState extends State<ClientProgressScreen> {
+class _ClientProgressScreenContent extends ConsumerStatefulWidget {
+  final Client client;
+
+  const _ClientProgressScreenContent({required this.client});
+
+  @override
+  ConsumerState<_ClientProgressScreenContent> createState() => _ClientProgressScreenState();
+}
+
+class _ClientProgressScreenState extends ConsumerState<_ClientProgressScreenContent> {
   String _selectedMetric = 'Weight';
   String _selectedPeriod = '3 Months';
 
   final List<String> _metrics = ['Weight', 'Body Fat', 'Muscle Mass', 'BMI'];
   final List<String> _periods = ['1 Month', '3 Months', '6 Months', '1 Year'];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClientProgress(widget.client.id);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +71,7 @@ class _ClientProgressScreenState extends State<ClientProgressScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           '${widget.client.name}\'s Progress',

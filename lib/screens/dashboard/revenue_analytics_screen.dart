@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:athletica/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
 
-class RevenueAnalyticsScreen extends StatefulWidget {
+class RevenueAnalyticsScreen extends ConsumerStatefulWidget {
   const RevenueAnalyticsScreen({super.key});
 
   @override
-  State<RevenueAnalyticsScreen> createState() => _RevenueAnalyticsScreenState();
+  ConsumerState<RevenueAnalyticsScreen> createState() =>
+      _RevenueAnalyticsScreenState();
 }
 
-class _RevenueAnalyticsScreenState extends State<RevenueAnalyticsScreen> {
+class _RevenueAnalyticsScreenState
+    extends ConsumerState<RevenueAnalyticsScreen> {
   String _selectedPeriod = 'Monthly';
   String _selectedChart = 'Revenue';
 
@@ -77,6 +79,8 @@ class _RevenueAnalyticsScreenState extends State<RevenueAnalyticsScreen> {
   }
 
   Widget _buildRevenueOverview() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -95,60 +99,56 @@ class _RevenueAnalyticsScreenState extends State<RevenueAnalyticsScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Column(
+          Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildRevenueCard(
-                          'Total Revenue',
-                          '${coachProvider.totalRevenue.toInt()} EGP',
-                          '+15.2%',
-                          Icons.attach_money,
-                          AppTheme.successGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildRevenueCard(
-                          'This Month',
-                          '2,500 EGP',
-                          '+8.5%',
-                          Icons.calendar_month,
-                          AppTheme.primaryBlue,
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: _buildRevenueCard(
+                      'Total Revenue',
+                      '${coachState.totalRevenue.toInt()} EGP',
+                      '+15.2%',
+                      Icons.attach_money,
+                      AppTheme.successGreen,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildRevenueCard(
-                          'Avg. per Client',
-                          '350 EGP',
-                          '+12.3%',
-                          Icons.person,
-                          AppTheme.warningOrange,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildRevenueCard(
-                          'Growth Rate',
-                          '18.5%',
-                          '+2.1%',
-                          Icons.trending_up,
-                          AppTheme.errorRed,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildRevenueCard(
+                      'This Month',
+                      '2,500 EGP',
+                      '+8.5%',
+                      Icons.calendar_month,
+                      AppTheme.primaryBlue,
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildRevenueCard(
+                      'Avg. per Client',
+                      '350 EGP',
+                      '+12.3%',
+                      Icons.person,
+                      AppTheme.warningOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildRevenueCard(
+                      'Growth Rate',
+                      '18.5%',
+                      '+2.1%',
+                      Icons.trending_up,
+                      AppTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

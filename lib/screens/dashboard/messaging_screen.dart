@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/client.dart';
-import 'package:athletica/models/message.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/client.dart';
+import 'package:athletica/data/models/message.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/screens/dashboard/chat_screen.dart';
 
-class MessagingScreen extends StatefulWidget {
+class MessagingScreen extends ConsumerStatefulWidget {
   const MessagingScreen({super.key});
 
   @override
-  State<MessagingScreen> createState() => _MessagingScreenState();
+  ConsumerState<MessagingScreen> createState() => _MessagingScreenState();
 }
 
-class _MessagingScreenState extends State<MessagingScreen> {
+class _MessagingScreenState extends ConsumerState<MessagingScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -21,8 +22,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClients();
+      ref.read(coachProvider.notifier).loadClients();
     });
   }
 
@@ -34,6 +34,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final coachState = ref.watch(coachProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
@@ -66,9 +68,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
             // Conversations List
             Expanded(
-              child: Consumer<CoachProvider>(
-                builder: (context, coachProvider, child) {
-                  if (coachProvider.isLoading) {
+              child: Builder(
+                builder: (context) {
+                  if (coachState.isLoading) {
                     return const Center(
                       child: CircularProgressIndicator(
                         color: AppTheme.primaryBlue,
@@ -77,7 +79,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   }
 
                   final filteredClients =
-                      _getFilteredClients(coachProvider.clients);
+                      _getFilteredClients(coachState.clients);
 
                   if (filteredClients.isEmpty) {
                     return _buildEmptyState();
@@ -242,11 +244,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           ],
         ),
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ChatScreen(client: client),
-            ),
-          );
+          context.push('/chat/${client.id}');
         },
       ),
     );

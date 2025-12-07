@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/screens/main_screen.dart';
-import 'package:athletica/screens/auth/forgot_password_screen.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/utils/exceptions.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,27 +28,29 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _obscurePassword = true;
 
   /// Show error message with appropriate styling based on exception type
-  void _showErrorMessage(AuthProvider authProvider) {
+  void _showErrorMessage(Object error) {
     if (!mounted) return;
 
     String message;
     Color backgroundColor;
     IconData icon;
+    bool isNetworkError = false;
 
-    if (authProvider.isAuthError) {
-      message = authProvider.error ?? 'Authentication failed';
+    if (error is AuthException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.lock_outlined;
-    } else if (authProvider.isNetworkError) {
-      message = authProvider.error ?? 'Network error occurred';
+    } else if (error is NetworkException) {
+      message = error.message;
       backgroundColor = AppTheme.warningOrange;
       icon = Icons.wifi_off_outlined;
-    } else if (authProvider.isValidationError) {
-      message = authProvider.error ?? 'Invalid input provided';
+      isNetworkError = true;
+    } else if (error is ValidationException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     } else {
-      message = authProvider.error ?? 'An unexpected error occurred';
+      message = error.toString();
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     }
@@ -62,10 +65,10 @@ class _SignInScreenState extends State<SignInScreen> {
           ],
         ),
         backgroundColor: backgroundColor,
-        duration: authProvider.isNetworkError
+        duration: isNetworkError
             ? const Duration(seconds: 5)
             : const Duration(seconds: 3),
-        action: authProvider.isNetworkError
+        action: isNetworkError
             ? SnackBarAction(
                 label: 'Retry',
                 textColor: Colors.white,
@@ -86,20 +89,24 @@ class _SignInScreenState extends State<SignInScreen> {
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-    final success = await authProvider.signIn(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (success && mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
+    try {
+      await ref.read(
+        signInProvider(SignInParams(email: email, password: password)).future,
       );
-    } else if (mounted) {
-      _showErrorMessage(authProvider);
+
+      if (mounted) {
+        // Invalidate coach provider to refresh
+        ref.invalidate(coachProvider);
+        // Navigate to home
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage(e);
+      }
     }
   }
 
@@ -129,32 +136,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (!mounted) return;
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      final success = await authProvider.signInWithGoogle(
-        googleToken: googleAuth.accessToken!,
-        name: googleUser.displayName,
-        email: googleUser.email,
-        profilePhotoUrl: googleUser.photoUrl,
+      // Note: Google sign-in requires OAuth redirect flow in Supabase
+      // This is a placeholder - implement OAuth redirect separately
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Google sign-in requires OAuth setup in Supabase'),
+          backgroundColor: AppTheme.warningOrange,
+        ),
       );
-
-      if (!mounted) return;
-
-      if (success) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-          (route) => false,
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully signed in with Google!'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
-      } else {
-        _showErrorMessage(authProvider);
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,37 +189,16 @@ class _SignInScreenState extends State<SignInScreen> {
         return;
       }
 
-      // Get user data from Facebook
-      final userData = await FacebookAuth.instance.getUserData();
-
       if (!mounted) return;
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      final success = await authProvider.signInWithFacebook(
-        facebookToken: accessToken.tokenString,
-        name: userData['name'] as String?,
-        email: userData['email'] as String?,
-        profilePhotoUrl: userData['picture']?['data']?['url'] as String?,
+      // Note: Facebook sign-in requires OAuth redirect flow in Supabase
+      // This is a placeholder - implement OAuth redirect separately
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Facebook sign-in requires OAuth setup in Supabase'),
+          backgroundColor: AppTheme.warningOrange,
+        ),
       );
-
-      if (!mounted) return;
-
-      if (success) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-          (route) => false,
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully signed in with Facebook!'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
-      } else {
-        _showErrorMessage(authProvider);
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,40 +234,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (!mounted) return;
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      // Extract name from Apple credential
-      String? fullName;
-      if (credential.givenName != null && credential.familyName != null) {
-        fullName = '${credential.givenName} ${credential.familyName}';
-      } else if (credential.givenName != null) {
-        fullName = credential.givenName;
-      }
-
-      final success = await authProvider.signInWithApple(
-        appleToken: credential.identityToken!,
-        name: fullName,
-        email: credential.email,
-        profilePhotoUrl: null, // Apple doesn't provide profile photos
+      // Note: Apple sign-in requires OAuth redirect flow in Supabase
+      // This is a placeholder - implement OAuth redirect separately
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apple sign-in requires OAuth setup in Supabase'),
+          backgroundColor: AppTheme.warningOrange,
+        ),
       );
-
-      if (!mounted) return;
-
-      if (success) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-          (route) => false,
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully signed in with Apple!'),
-            backgroundColor: AppTheme.successGreen,
-          ),
-        );
-      } else {
-        _showErrorMessage(authProvider);
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,7 +263,7 @@ class _SignInScreenState extends State<SignInScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -405,11 +347,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ForgotPasswordScreen(),
-                        ),
-                      );
+                      context.push('/auth/forgot-password');
                     },
                     child: Text(
                       'Forgot Password?',
@@ -423,41 +361,26 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 40),
 
                 // Sign In Button
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _signIn,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                'Sign In',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _signIn,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-                  },
+                    ),
+                    child: Text(
+                      'Sign In',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -472,7 +395,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.push('/auth/signup'),
                       child: Text(
                         'Sign Up',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

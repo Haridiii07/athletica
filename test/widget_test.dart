@@ -1,12 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/screens/auth/signin_screen.dart';
-import 'package:athletica/screens/dashboard/home_screen.dart';
-import 'package:athletica/utils/theme.dart';
-import 'package:athletica/widgets/empty_states.dart';
 
 void main() {
   group('SignInScreen Widget Tests', () {

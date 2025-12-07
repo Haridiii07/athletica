@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 import 'package:athletica/utils/theme.dart';
 
-class SubscriptionScreen extends StatefulWidget {
+class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
 
   @override
-  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
+  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
+class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   String _selectedTier = 'free';
 
   final List<SubscriptionTier> _tiers = [
@@ -135,68 +135,67 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Widget _buildCurrentPlanInfo() {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        final currentTier = _tiers.firstWhere(
-          (tier) => tier.id == authProvider.coach?.subscriptionTier,
-          orElse: () => _tiers.first,
-        );
+    final coachState = ref.watch(currentCoachProvider);
+    final coach = coachState.valueOrNull;
 
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final currentTier = _tiers.firstWhere(
+      (tier) => tier.id == coach?.subscriptionTier,
+      orElse: () => _tiers.first,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.star,
-                    color: AppTheme.warningOrange,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Current Plan',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
+              const Icon(
+                Icons.star,
+                color: AppTheme.warningOrange,
+                size: 24,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(width: 8),
               Text(
-                currentTier.name,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppTheme.primaryBlue,
+                'Current Plan',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppTheme.textPrimary,
                       fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                currentTier.price == 0
-                    ? 'Free Forever'
-                    : '${currentTier.price} EGP ${currentTier.duration}',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '0 / ${authProvider.coach?.clientLimit ?? 3} clients used',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textGrey,
                     ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 12),
+          Text(
+            currentTier.name,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppTheme.primaryBlue,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            currentTier.price == 0
+                ? 'Free Forever'
+                : '${currentTier.price} EGP ${currentTier.duration}',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '0 / ${coach?.clientLimit ?? 3} clients used',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textGrey,
+                ),
+          ),
+        ],
+      ),
     );
   }
 

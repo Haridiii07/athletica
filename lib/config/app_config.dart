@@ -1,15 +1,16 @@
 class AppConfig {
-  // Backend Configuration
-  static const String baseUrl = 'http://localhost:3000/api';
+  // Supabase Configuration
+  static const String supabaseUrl = 'https://yqrcscudifobekkitfta.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxcmNzY3VkaWZvYmVra2l0ZnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDQzMTksImV4cCI6MjA4MDYyMDMxOX0.AtQFiQtF9StUOct4h2oPk-6N2TJ4uaBRG-QOjYs71Nc';
 
-  // For production, update this to your deployed backend URL
-  // static const String baseUrl = 'https://your-backend-domain.com/api';
+  // Legacy API Configuration (kept for backward compatibility during migration)
+  static const String baseUrl = 'http://localhost:3000/api';
 
   // App Configuration
   static const String appName = 'Athletica';
   static const String appVersion = '1.0.0';
 
-  // API Endpoints
+  // API Endpoints (legacy - will be replaced by Supabase)
   static const String authSignUp = '/auth/signup';
   static const String authSignIn = '/auth/signin';
   static const String authSignOut = '/auth/signout';
@@ -35,5 +36,5 @@ class AppConfig {
   static const List<String> allowedImageTypes = ['jpg', 'jpeg', 'png', 'webp'];
 
   // Development Mode - Set to false for production
-  static const bool useMockApi = true; // Change to false for real backend
+  static const bool useMockApi = false; // Changed to false to use Supabase backend
 }

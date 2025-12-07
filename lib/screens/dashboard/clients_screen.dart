@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/client.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/client.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/screens/dashboard/add_client_screen.dart';
 import 'package:athletica/screens/dashboard/chat_screen.dart';
 import 'package:athletica/screens/dashboard/client_details_screen.dart';
 
-class ClientsScreen extends StatefulWidget {
+class ClientsScreen extends ConsumerStatefulWidget {
   const ClientsScreen({super.key});
 
   @override
-  State<ClientsScreen> createState() => _ClientsScreenState();
+  ConsumerState<ClientsScreen> createState() => _ClientsScreenState();
 }
 
-class _ClientsScreenState extends State<ClientsScreen> {
+class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = 'All';
@@ -25,8 +26,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClients();
+      ref.read(coachProvider.notifier).loadClients();
     });
   }
 
@@ -69,6 +69,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final coachState = ref.watch(coachProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       body: SafeArea(
@@ -82,9 +84,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
             // Client List
             Expanded(
-              child: Consumer<CoachProvider>(
-                builder: (context, coachProvider, child) {
-                  if (coachProvider.isLoading) {
+              child: Builder(
+                builder: (context) {
+                  if (coachState.isLoading) {
                     return const Center(
                       child: CircularProgressIndicator(
                         color: AppTheme.primaryBlue,
@@ -93,7 +95,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   }
 
                   final filteredClients =
-                      _getFilteredClients(coachProvider.clients);
+                      _getFilteredClients(coachState.clients);
 
                   if (filteredClients.isEmpty) {
                     return _buildEmptyState();
@@ -128,6 +130,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   Widget _buildHeader() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -140,15 +144,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 ),
           ),
           const Spacer(),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Text(
-                '${coachProvider.clients.length} clients',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-              );
-            },
+          Text(
+            '${coachState.clients.length} clients',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
           ),
         ],
       ),
@@ -344,11 +344,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ],
         ),
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ClientDetailsScreen(client: client),
-            ),
-          );
+          context.push('/clients/${client.id}');
         },
       ),
     );
@@ -447,25 +443,13 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void _handleClientAction(String action, Client client) {
     switch (action) {
       case 'view':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ClientDetailsScreen(client: client),
-          ),
-        );
+        context.push('/clients/${client.id}');
         break;
       case 'edit':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => AddClientScreen(client: client),
-          ),
-        );
+        context.push('/clients/${client.id}/edit');
         break;
       case 'message':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(client: client),
-          ),
-        );
+        context.push('/chat/${client.id}');
         break;
       case 'delete':
         _showDeleteConfirmation(client);

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/client.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/client.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
 
-class AddClientScreen extends StatefulWidget {
-  final Client? client; // For editing existing client
+class AddClientScreen extends ConsumerStatefulWidget {
+  final String? clientId; // For editing existing client
 
-  const AddClientScreen({super.key, this.client});
+  const AddClientScreen({super.key, this.clientId});
 
   @override
-  State<AddClientScreen> createState() => _AddClientScreenState();
+  ConsumerState<AddClientScreen> createState() => _AddClientScreenState();
 }
 
-class _AddClientScreenState extends State<AddClientScreen> {
+class _AddClientScreenState extends ConsumerState<AddClientScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -31,12 +32,24 @@ class _AddClientScreenState extends State<AddClientScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.client != null) {
-      _nameController.text = widget.client!.name;
-      _emailController.text = widget.client!.email ?? '';
-      _phoneController.text = widget.client!.phone ?? '';
-      _selectedStatus = widget.client!.status;
-      _profilePhotoPath = widget.client!.profilePhotoUrl;
+    if (widget.clientId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadClientData(widget.clientId!);
+      });
+    }
+  }
+
+  Future<void> _loadClientData(String clientId) async {
+    try {
+      final client = await ref.read(clientDetailsProvider(clientId).future);
+      _nameController.text = client.name;
+      _emailController.text = client.email ?? '';
+      _phoneController.text = client.phone ?? '';
+      _selectedStatus = client.status;
+      _profilePhotoPath = client.profilePhotoUrl;
+      if (mounted) setState(() {});
+    } catch (e) {
+      // Handle error
     }
   }
 
@@ -50,7 +63,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.client != null;
+    final isEditing = widget.clientId != null;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -63,7 +76,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         actions: [
           if (isEditing)
@@ -296,7 +309,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.textSecondary,
               side: const BorderSide(color: AppTheme.borderColor),
@@ -357,24 +370,22 @@ class _AddClientScreenState extends State<AddClientScreen> {
     }
 
     try {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      // Check if coach is available
-      if (authProvider.coach?.id == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please sign in to add clients'),
-            backgroundColor: AppTheme.errorRed,
-          ),
-        );
+      final coach = await ref.read(currentCoachProvider.future);
+      if (coach == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please sign in to add clients'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        }
         return;
       }
 
       final client = Client(
-        id: widget.client?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        coachId: authProvider.coach!.id,
+        id: widget.clientId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        coachId: coach.id,
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim().isNotEmpty
@@ -382,61 +393,52 @@ class _AddClientScreenState extends State<AddClientScreen> {
             : null,
         status: _selectedStatus,
         profilePhotoUrl: _profilePhotoPath,
-        subscriptionProgress: widget.client?.subscriptionProgress ?? 0.0,
-        joinedAt: widget.client?.joinedAt ?? DateTime.now(),
-        lastSession: widget.client?.lastSession,
-        goals: widget.client?.goals ?? {},
-        stats: widget.client?.stats ?? {},
-        sessionHistory: widget.client?.sessionHistory ?? [],
+        subscriptionProgress: 0.0,
+        joinedAt: DateTime.now(),
+        lastSession: null,
+        goals: {},
+        stats: {},
+        sessionHistory: [],
       );
 
-      bool success;
-      if (widget.client != null) {
-        success = await coachProvider.updateClient(client);
-        if (success) {
+      if (widget.clientId != null) {
+        // Update existing client
+        final updateUseCase = ref.read(updateClientUseCaseProvider);
+        await updateUseCase.call(client);
+        ref.invalidate(clientsProvider);
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Client updated successfully'),
               backgroundColor: AppTheme.successGreen,
             ),
           );
-          Navigator.of(context).pop();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Failed to update client: ${coachProvider.error ?? "Unknown error"}'),
-              backgroundColor: AppTheme.errorRed,
-            ),
-          );
+          context.pop();
         }
       } else {
-        success = await coachProvider.addClient(client);
-        if (success) {
+        // Add new client
+        final addUseCase = ref.read(addClientUseCaseProvider);
+        await addUseCase.call(client);
+        ref.invalidate(clientsProvider);
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Client added successfully'),
               backgroundColor: AppTheme.successGreen,
             ),
           );
-          Navigator.of(context).pop();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Failed to add client: ${coachProvider.error ?? "Unknown error"}'),
-              backgroundColor: AppTheme.errorRed,
-            ),
-          );
+          context.pop();
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving client: $e'),
-          backgroundColor: AppTheme.errorRed,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving client: $e'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
     }
   }
 
@@ -449,13 +451,13 @@ class _AddClientScreenState extends State<AddClientScreen> {
           'Delete Client',
           style: TextStyle(color: AppTheme.textPrimary),
         ),
-        content: Text(
-          'Are you sure you want to delete ${widget.client?.name}? This action cannot be undone.',
-          style: const TextStyle(color: AppTheme.textSecondary),
+        content: const Text(
+          'Are you sure you want to delete this client? This action cannot be undone.',
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
@@ -463,36 +465,30 @@ class _AddClientScreenState extends State<AddClientScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              if (widget.clientId == null) return;
+              context.pop();
               try {
-                final coachProvider =
-                    Provider.of<CoachProvider>(context, listen: false);
-                bool success =
-                    await coachProvider.deleteClient(widget.client!.id);
-                if (success) {
+                final deleteUseCase = ref.read(deleteClientUseCaseProvider);
+                await deleteUseCase.call(widget.clientId!);
+                ref.invalidate(clientsProvider);
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Client deleted successfully'),
                       backgroundColor: AppTheme.successGreen,
                     ),
                   );
-                  Navigator.of(context).pop();
-                } else {
+                  context.pop();
+                }
+              } catch (e) {
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          'Failed to delete client: ${coachProvider.error ?? "Unknown error"}'),
+                      content: Text('Error deleting client: $e'),
                       backgroundColor: AppTheme.errorRed,
                     ),
                   );
                 }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error deleting client: $e'),
-                    backgroundColor: AppTheme.errorRed,
-                  ),
-                );
               }
             },
             style: ElevatedButton.styleFrom(

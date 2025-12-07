@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:athletica/providers/coach_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
 
-class AnalyticsDashboardScreen extends StatefulWidget {
+class AnalyticsDashboardScreen extends ConsumerStatefulWidget {
   const AnalyticsDashboardScreen({super.key});
 
   @override
-  State<AnalyticsDashboardScreen> createState() =>
+  ConsumerState<AnalyticsDashboardScreen> createState() =>
       _AnalyticsDashboardScreenState();
 }
 
-class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
+class _AnalyticsDashboardScreenState
+    extends ConsumerState<AnalyticsDashboardScreen> {
   String _selectedTimeRange = '30 Days';
   String _selectedMetric = 'Revenue';
 
@@ -23,10 +24,30 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadClients();
-      coachProvider.loadPlans();
+      ref.read(coachProvider.notifier).loadClients();
+      ref.read(coachProvider.notifier).loadPlans();
     });
+  }
+
+  void _exportReport() {
+    // Placeholder - export functionality will be implemented
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Export functionality coming soon'),
+        backgroundColor: AppTheme.primaryBlue,
+      ),
+    );
+  }
+
+  void _refreshData() {
+    ref.read(coachProvider.notifier).loadClients();
+    ref.read(coachProvider.notifier).loadPlans();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Data refreshed'),
+        backgroundColor: AppTheme.successGreen,
+      ),
+    );
   }
 
   @override
@@ -215,6 +236,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildKeyMetrics() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -233,60 +256,56 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Column(
+          Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMetricCard(
-                          'Total Revenue',
-                          '${coachProvider.totalRevenue.toInt()} EGP',
-                          '+12.5%',
-                          Icons.attach_money,
-                          AppTheme.successGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildMetricCard(
-                          'Active Clients',
-                          '${coachProvider.activeClients}',
-                          '+2',
-                          Icons.people,
-                          AppTheme.primaryBlue,
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: _buildMetricCard(
+                      'Total Revenue',
+                      '${coachState.totalRevenue.toInt()} EGP',
+                      '+12.5%',
+                      Icons.attach_money,
+                      AppTheme.successGreen,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMetricCard(
-                          'Total Plans',
-                          '${coachProvider.totalPlans}',
-                          '+1',
-                          Icons.fitness_center,
-                          AppTheme.warningOrange,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildMetricCard(
-                          'Avg. Progress',
-                          '${(coachProvider.averageSubscriptionProgress * 100).toInt()}%',
-                          '+5.2%',
-                          Icons.trending_up,
-                          AppTheme.errorRed,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildMetricCard(
+                      'Active Clients',
+                      '${coachState.activeClients}',
+                      '+2',
+                      Icons.people,
+                      AppTheme.primaryBlue,
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMetricCard(
+                      'Total Plans',
+                      '${coachState.totalPlans}',
+                      '+1',
+                      Icons.fitness_center,
+                      AppTheme.warningOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildMetricCard(
+                      'Avg. Progress',
+                      '${(coachState.averageSubscriptionProgress * 100).toInt()}%',
+                      '+5.2%',
+                      Icons.trending_up,
+                      AppTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -495,6 +514,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildClientAnalytics() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -513,60 +534,56 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Column(
+          Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildClientStatCard(
-                          'New Clients',
-                          '${coachProvider.clients.where((c) => c.status == 'new').length}',
-                          '+3 this month',
-                          Icons.person_add,
-                          AppTheme.successGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildClientStatCard(
-                          'Active Clients',
-                          '${coachProvider.activeClients}',
-                          '85% retention',
-                          Icons.people,
-                          AppTheme.primaryBlue,
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: _buildClientStatCard(
+                      'New Clients',
+                      '${coachState.clients.where((c) => c.status == 'new').length}',
+                      '+3 this month',
+                      Icons.person_add,
+                      AppTheme.successGreen,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildClientStatCard(
-                          'Avg. Progress',
-                          '${(coachProvider.averageSubscriptionProgress * 100).toInt()}%',
-                          '+5.2%',
-                          Icons.trending_up,
-                          AppTheme.warningOrange,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildClientStatCard(
-                          'Sessions',
-                          '${coachProvider.clients.fold(0, (sum, client) => sum + client.sessionHistory.length)}',
-                          '+12 this week',
-                          Icons.fitness_center,
-                          AppTheme.errorRed,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildClientStatCard(
+                      'Active Clients',
+                      '${coachState.activeClients}',
+                      '85% retention',
+                      Icons.people,
+                      AppTheme.primaryBlue,
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildClientStatCard(
+                      'Avg. Progress',
+                      '${(coachState.averageSubscriptionProgress * 100).toInt()}%',
+                      '+5.2%',
+                      Icons.trending_up,
+                      AppTheme.warningOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildClientStatCard(
+                      'Sessions',
+                      '${coachState.clients.fold(0, (sum, client) => sum + client.sessionHistory.length)}',
+                      '+12 this week',
+                      Icons.fitness_center,
+                      AppTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -617,6 +634,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildPlanPerformance() {
+    final coachState = ref.watch(coachProvider);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -635,127 +654,120 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              if (coachProvider.plans.isEmpty) {
+          if (coachState.plans.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.borderColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.fitness_center_outlined,
+                    size: 48,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No plans created yet',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create your first workout plan to see performance analytics',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              children: coachState.plans.take(3).map((plan) {
                 return Container(
-                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.borderColor.withValues(alpha: 0.1),
+                    color: AppTheme.darkBackground,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.borderColor),
                   ),
-                  child: Column(
+                  child: Row(
                     children: [
-                      const Icon(
-                        Icons.fitness_center_outlined,
-                        size: 48,
-                        color: AppTheme.textSecondary,
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.fitness_center,
+                          color: AppTheme.primaryBlue,
+                          size: 20,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No plans created yet',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Create your first workout plan to see performance analytics',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              plan.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                        textAlign: TextAlign.center,
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text(
+                                  '${plan.clientCount} clients',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${plan.successRateText} success',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.successGreen,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        plan.revenueText,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.successGreen,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
                 );
-              }
-
-              return Column(
-                children: coachProvider.plans.take(3).map((plan) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.darkBackground,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.borderColor),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            color: AppTheme.primaryBlue,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                plan.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppTheme.textPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    '${plan.clientCount} clients',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: AppTheme.textSecondary,
-                                        ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '${plan.successRateText} success',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: AppTheme.successGreen,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          plan.revenueText,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppTheme.successGreen,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
+              }).toList(),
+            ),
         ],
       ),
     );
@@ -798,14 +810,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
             'Payment received',
             '500 EGP payment from Emma Davis',
             '6 hours ago',
-            Icons.payment,
-            AppTheme.successGreen,
-          ),
-          _buildActivityItem(
-            'New plan created',
-            'Strength Training Plan published',
-            '1 day ago',
-            Icons.fitness_center,
+            Icons.attach_money,
             AppTheme.warningOrange,
           ),
         ],
@@ -813,17 +818,18 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
     );
   }
 
-  Widget _buildActivityItem(
-      String title, String subtitle, String time, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+  Widget _buildActivityItem(String title, String description, String time,
+      IconData icon, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 16),
           ),
@@ -836,48 +842,28 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                   title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textPrimary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                       ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  subtitle,
+                  description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textGrey,
+                        fontSize: 10,
                       ),
                 ),
               ],
             ),
           ),
-          Text(
-            time,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textGrey,
-                ),
-          ),
         ],
-      ),
-    );
-  }
-
-  void _exportReport() {
-    // Placeholder - export functionality will be implemented
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Export functionality coming soon!'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
-  }
-
-  void _refreshData() {
-    final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-    coachProvider.loadClients();
-    coachProvider.loadPlans();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Data refreshed successfully'),
-        backgroundColor: AppTheme.successGreen,
       ),
     );
   }

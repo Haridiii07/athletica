@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 import 'dart:io';
-import 'package:athletica/providers/auth_provider.dart';
-import 'package:athletica/screens/auth/identity_verification_screen.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
 import 'package:athletica/utils/theme.dart';
+import 'package:athletica/utils/exceptions.dart';
 
-class ProfilePhotoScreen extends StatefulWidget {
+class ProfilePhotoScreen extends ConsumerStatefulWidget {
   const ProfilePhotoScreen({super.key});
 
   @override
-  State<ProfilePhotoScreen> createState() => _ProfilePhotoScreenState();
+  ConsumerState<ProfilePhotoScreen> createState() => _ProfilePhotoScreenState();
 }
 
-class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
+class _ProfilePhotoScreenState extends ConsumerState<ProfilePhotoScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
@@ -121,18 +123,23 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
     });
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final supabaseService = ref.read(supabaseServiceProvider);
+      final authRepository = ref.read(authRepositoryProvider);
 
       // Upload the image and get the URL
-      final imageUrl = await authProvider.uploadProfilePhoto(_selectedImage!);
+      final imageUrl = await supabaseService.uploadImage(
+        _selectedImage!,
+        folder: 'profile',
+      );
 
-      if (imageUrl != null && mounted) {
+      if (imageUrl.isNotEmpty && mounted) {
         // Update the coach profile with the new photo URL
-        final success = await authProvider.updateProfile(
-          profilePhotoUrl: imageUrl,
-        );
+        await authRepository.updateCoachProfile(profilePhotoUrl: imageUrl);
+        
+        // Invalidate coach provider to refresh
+        ref.invalidate(coachProvider);
 
-        if (success && mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Profile photo uploaded successfully!'),
@@ -141,13 +148,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
           );
 
           // Navigate to the next screen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const IdentityVerificationScreen(),
-            ),
-          );
-        } else if (mounted) {
-          _showErrorMessage(authProvider);
+          context.pushReplacement('/auth/identity-verification');
         }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -159,12 +160,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading photo: ${e.toString()}'),
-            backgroundColor: AppTheme.errorRed,
-          ),
-        );
+        _showErrorMessage(e);
       }
     } finally {
       if (mounted) {
@@ -176,23 +172,25 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
   }
 
   /// Show error message with appropriate styling based on exception type
-  void _showErrorMessage(AuthProvider authProvider) {
+  void _showErrorMessage(Object error) {
     if (!mounted) return;
 
     String message;
     Color backgroundColor;
     IconData icon;
+    bool isNetworkError = false;
 
-    if (authProvider.isNetworkError) {
-      message = authProvider.error ?? 'Network error occurred';
+    if (error is NetworkException) {
+      message = error.message;
       backgroundColor = AppTheme.warningOrange;
       icon = Icons.wifi_off_outlined;
-    } else if (authProvider.isValidationError) {
-      message = authProvider.error ?? 'Invalid image format';
+      isNetworkError = true;
+    } else if (error is ValidationException) {
+      message = error.message;
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     } else {
-      message = authProvider.error ?? 'Failed to upload profile photo';
+      message = error.toString();
       backgroundColor = AppTheme.errorRed;
       icon = Icons.error_outline;
     }
@@ -207,10 +205,10 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
           ],
         ),
         backgroundColor: backgroundColor,
-        duration: authProvider.isNetworkError
+        duration: isNetworkError
             ? const Duration(seconds: 5)
             : const Duration(seconds: 3),
-        action: authProvider.isNetworkError
+        action: isNetworkError
             ? SnackBarAction(
                 label: 'Retry',
                 textColor: Colors.white,
@@ -230,7 +228,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -408,12 +406,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
                   onPressed: _isLoading
                       ? null
                       : () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const IdentityVerificationScreen(),
-                            ),
-                          );
+                          context.pushReplacement('/auth/identity-verification');
                         },
                   child: Text(
                     'Skip for now',

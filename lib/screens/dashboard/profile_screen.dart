@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/auth_provider.dart';
+import 'package:athletica/data/models/coach.dart';
 import 'package:athletica/utils/theme.dart';
 import 'package:athletica/screens/dashboard/edit_profile_screen.dart';
 import 'package:athletica/screens/dashboard/subscription_screen.dart';
-import 'package:athletica/screens/splash_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,89 +75,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo() {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        final coach = authProvider.coach;
+    final coachAsync = ref.watch(currentCoachProvider);
+    
+    return coachAsync.when(
+      data: (coach) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Column(
+          children: [
+            // Profile Photo
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: AppTheme.primaryBlue,
+              backgroundImage: coach?.profilePhotoUrl != null
+                  ? NetworkImage(coach!.profilePhotoUrl!)
+                  : null,
+              child: coach?.profilePhotoUrl == null
+                  ? Text(
+                      (coach?.name.isNotEmpty == true ? coach!.name.substring(0, 1).toUpperCase() : 'A'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 16),
 
-        return Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderColor),
-          ),
-          child: Column(
-            children: [
-              // Profile Photo
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: AppTheme.primaryBlue,
-                backgroundImage: coach?.profilePhotoUrl != null
-                    ? NetworkImage(coach!.profilePhotoUrl!)
-                    : null,
-                child: coach?.profilePhotoUrl == null
-                    ? Text(
-                        coach?.name.substring(0, 1).toUpperCase() ?? 'A',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 32,
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 16),
+            // Name and Email
+            Text(
+              coach?.name ?? 'Coach Name',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 4),
 
-              // Name and Email
+            Text(
+              coach?.email ?? 'coach@example.com',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+
+            // Phone
+            if (coach?.phone != null)
               Text(
-                coach?.name ?? 'Coach Name',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 4),
-
-              Text(
-                coach?.email ?? 'coach@example.com',
+                coach!.phone,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
               ),
-              const SizedBox(height: 8),
+            const SizedBox(height: 16),
 
-              // Phone
-              if (coach?.phone != null)
-                Text(
-                  coach!.phone,
+            // Bio
+            if (coach?.bio != null && coach!.bio.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkBackground,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  coach!.bio,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
+                  textAlign: TextAlign.center,
                 ),
-              const SizedBox(height: 16),
-
-              // Bio
-              if (coach?.bio != null && coach!.bio.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.darkBackground,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    coach.bio,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+              ),
+          ],
+        ),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -475,15 +476,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _signOut() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.signOut();
-
+    await ref.read(authRepositoryProvider).signOut();
     if (mounted) {
-      // Navigate to splash screen without relying on named routes
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const SplashScreen()),
-        (route) => false,
-      );
+      context.go('/auth/signin');
     }
   }
 }

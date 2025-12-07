@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:athletica/providers/coach_provider.dart';
-import 'package:athletica/models/plan.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:athletica/presentation/providers/coach_provider.dart';
+import 'package:athletica/data/models/plan.dart';
 import 'package:athletica/utils/theme.dart';
-import 'package:athletica/screens/dashboard/create_plan_screen.dart';
 
-class PlansScreen extends StatefulWidget {
+class PlansScreen extends ConsumerStatefulWidget {
   const PlansScreen({super.key});
 
   @override
-  State<PlansScreen> createState() => _PlansScreenState();
+  ConsumerState<PlansScreen> createState() => _PlansScreenState();
 }
 
-class _PlansScreenState extends State<PlansScreen> {
+class _PlansScreenState extends ConsumerState<PlansScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = 'All';
 
   final List<String> _filterOptions = ['All', 'Active', 'Draft', 'Archived'];
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final coachProvider = Provider.of<CoachProvider>(context, listen: false);
-      coachProvider.loadPlans();
-    });
-  }
 
   @override
   void dispose() {
@@ -79,17 +71,9 @@ class _PlansScreenState extends State<PlansScreen> {
 
             // Plans List
             Expanded(
-              child: Consumer<CoachProvider>(
-                builder: (context, coachProvider, child) {
-                  if (coachProvider.isLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.primaryBlue,
-                      ),
-                    );
-                  }
-
-                  final filteredPlans = _getFilteredPlans(coachProvider.plans);
+              child: ref.watch(plansProvider).when(
+                data: (plans) {
+                  final filteredPlans = _getFilteredPlans(plans);
 
                   if (filteredPlans.isEmpty) {
                     return _buildEmptyState();
@@ -104,6 +88,24 @@ class _PlansScreenState extends State<PlansScreen> {
                     },
                   );
                 },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+                ),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('Error loading plans: $error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.invalidate(plansProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -111,11 +113,7 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const CreatePlanScreen(),
-            ),
-          );
+          context.push('/plans/create');
         },
         backgroundColor: AppTheme.primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
@@ -136,15 +134,15 @@ class _PlansScreenState extends State<PlansScreen> {
                 ),
           ),
           const Spacer(),
-          Consumer<CoachProvider>(
-            builder: (context, coachProvider, child) {
-              return Text(
-                '${coachProvider.plans.length} plans',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-              );
-            },
+          ref.watch(plansProvider).when(
+            data: (plans) => Text(
+              '${plans.length} plans',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
         ],
       ),
@@ -234,14 +232,16 @@ class _PlansScreenState extends State<PlansScreen> {
   }
 
   Widget _buildPlanCard(Plan plan) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () => context.push('/plans/${plan.id}'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Plan Image and Header
@@ -413,6 +413,7 @@ class _PlansScreenState extends State<PlansScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -515,11 +516,7 @@ class _PlansScreenState extends State<PlansScreen> {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const CreatePlanScreen(),
-                ),
-              );
+              context.push('/plans/create');
             },
             icon: const Icon(Icons.add),
             label: const Text('Create Plan'),
@@ -540,12 +537,10 @@ class _PlansScreenState extends State<PlansScreen> {
   void _handlePlanAction(String action, Plan plan) {
     switch (action) {
       case 'view':
+        context.push('/plans/${plan.id}');
+        break;
       case 'edit':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => CreatePlanScreen(plan: plan),
-          ),
-        );
+        context.push('/plans/${plan.id}');
         break;
       case 'duplicate':
         // Placeholder - duplicate plan functionality will be implemented
@@ -586,22 +581,38 @@ class _PlansScreenState extends State<PlansScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Placeholder - delete plan functionality will be implemented
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${plan.name} deleted successfully'),
-                  backgroundColor: AppTheme.successGreen,
-                ),
-              );
+            onPressed: () async {
+              context.pop();
+              // Delete plan using Riverpod
+              try {
+                final deleteUseCase = ref.read(deletePlanUseCaseProvider);
+                await deleteUseCase.call(plan.id);
+                ref.invalidate(plansProvider);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${plan.name} deleted successfully'),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting plan: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorRed,
