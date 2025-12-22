@@ -39,7 +39,7 @@
 
 - Arabic-first, RTL support, offline mode (cache schedules/templates).
 - High-contrast UI, scalable fonts, screen reader support (VoiceOver/TalkBack).
-- 5-minute onboarding video (Arabic, Firebase-hosted).
+- 5-minute onboarding video (Arabic, Supabase-hosted).
 
 ## 4. Success Metrics
 
@@ -50,7 +50,7 @@
 
 ## 5. Constraints
 
-- **Zero Budget**: Voluntary team, free tools (Flutter, Firebase).
+- **Zero Budget**: Voluntary team, free tools (Flutter, Supabase).
 - **Timeline**: Android MVP launch by October 23, 2025.
 - **Scope**: Android only for pilot; iOS/web post-pilot.
 

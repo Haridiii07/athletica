@@ -13,7 +13,7 @@
 - Components: Reusable UI (buttons, forms), RTL support, offline caching.
 - Status: In frontend development (profiles, scheduling prioritized).
 - **Backend**:
-- Platform: Firebase (free tier) for database, authentication, hosting.
+- Platform: Supabase (free tier) for database, authentication, hosting.
 - Data: Store trainer/client profiles, schedules, templates, messages.
 - Scalability: Supports 50 trainers without cost escalation.
 - **Web App**: Flutter web for PM/IT manager dashboard (sign-ups, churn, support tickets).
@@ -21,26 +21,26 @@
 ## 3. Features Implementation
 
 - **Free Tier**:
-- Profiles: Firebase Firestore for data storage, Flutter forms for input.
-- Client Management: Firestore for progress/notes, Flutter charts for visualization.
-- Scheduling: Flutter calendar widget, Firebase Cloud Messaging for notifications.
-- Templates: Firestore for 10 templates, searchable via tags.
-- Messaging: Firebase Realtime Database for chats.
-- Community: Firestore for forum posts, Flutter for badge UI.
+- Profiles: Supabase Postgres for data storage, Flutter forms for input.
+- Client Management: Postgres for progress/notes, Flutter charts for visualization.
+- Scheduling: Flutter calendar widget, Supabase Realtime for notifications.
+- Templates: Postgres for 10 templates, searchable via tags.
+- Messaging: Supabase Realtime for chats.
+- Community: Postgres for forum posts, Flutter for badge UI.
 - **Premium Tiers**:
-- Basic: Firestore queries for analytics, logo upload via Flutter.
+- Basic: Postgres queries for analytics, logo upload via Flutter.
 - Pro: PDF generation (Flutter plugin), group scheduling logic.
-- Elite: REST API (Firebase Functions), unlimited client storage.
+- Elite: REST API (Supabase Edge Functions), unlimited client storage.
 - **UX**: Arabic RTL via Flutter’s Directionality, offline mode via Hive, accessibility via Flutter’s semantics.
 
 ## 4. Tools & Integrations
 
-- **Development**: Flutter, Dart, VS Code, Firebase (Firestore, Authentication, Cloud Messaging, Functions).
+- **Development**: Flutter, Dart, VS Code, Supabase (Postgres, Authentication, Realtime, Edge Functions).
 - **Support**:Yan**:
 - Google Forms for feedback.
 - WhatsApp for support (no cost).
 - **Payments**: Manual bank transfers (Fawry/Vodafone post-pilot).
-- **Analytics**: Firebase Analytics for usage tracking.
+- **Analytics**: Supabase Analytics for usage tracking.
 
 ## 5. Development Plan
 
@@ -48,7 +48,7 @@
   - August–September 2025: Complete frontend (profiles, scheduling), beta test with 10 trainers.
   - October 2025: Finalize MVP, launch on Google Play Store.
 - **Tasks**:
-  - Backend Developer: Firebase setup (database, authentication).
+  - Backend Developer: Supabase setup (database, authentication).
   - Frontend Developer: Flutter UI (profiles, calendar, messaging).
   - UI/UX Designer: Arabic-first design, high-contrast UI.
   - PM/IT Manager: Web dashboard, support coordination.
@@ -56,6 +56,6 @@
 
 ## 6. Constraints
 
-- **Zero Budget**: Use free tools (Flutter, Firebase free tier).
+- **Zero Budget**: Use free tools (Flutter, Supabase free tier).
 - **Team Size**: 7 members, voluntary, no blockers confirmed.
 - **Fallback**: No-code platform (Adalo) if delays occur.

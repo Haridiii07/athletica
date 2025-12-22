@@ -4,7 +4,7 @@
 
 - **Trainer Profiles**:
   - Create/edit profiles (bio, specialties, photo, 3 clients free, unlimited Elite tier).
-    - Store in Firebase Firestore.
+    - Store in Supabase Postgres.
 - **Client Management**:
 - Track client progress (weight, reps), notes.
 - Basic analytics (retention), Pro (reports), Elite (API).
@@ -12,9 +12,9 @@
 - Calendar with Ramadan-adjusted slots, push/email notifications.
 - Group scheduling (Pro/Elite).
 - **Workout Templates**:
-- 10 Arabic templates, searchable, stored in Firestore.
+- 10 Arabic templates, searchable, stored in Supabase Postgres.
 - **Messaging**:
-- Secure in-app trainer-client chat (Firebase Realtime Database).
+- Secure in-app trainer-client chat (Supabase Realtime).
 - **Community**:
 - Forum for trainer discussions, badges for milestones.
 - **Web App**:
@@ -24,23 +24,23 @@
 
 - **Performance**:
 - Load time: <2 seconds for key screens (Flutter optimization).
-- Handle 50 trainers concurrently (Firebase scalability).
+- Handle 50 trainers concurrently (Supabase scalability).
 - **Reliability**:
-- 99.9% uptime via Firebase hosting.
+- 99.9% uptime via Supabase hosting.
 - Offline mode for schedules/templates (Hive caching).
 - **Security**:
-- Firebase Authentication (email, Google/Facebook).
-- Encrypted data (Firestore, Realtime Database).
+- Supabase Authentication (email, Google/Facebook).
+- Encrypted data (Supabase Postgres, Realtime).
 - **Usability**:
 - Arabic-first, RTL, high-contrast UI, scalable fonts.
 - Screen reader support (VoiceOver/TalkBack).
 - **Scalability**:
 - Support 150 trainers post-pilot (Cairo).
-- Firebase free tier for pilot, paid tier post-pilot.
+- Supabase free tier for pilot, paid tier post-pilot.
 
 ## 3. System Constraints
 
-- **Zero Budget**: Free tools (Flutter, Firebase, Google Forms).
+- **Zero Budget**: Free tools (Flutter, Supabase, Google Forms).
 - **Platform**: Android MVP, iOS/web post-pilot.
 - **Timeline**: Launch by October 23, 2025.
 
@@ -48,4 +48,4 @@
 
 - 50 trainers achievable via organic marketing.
 - Voluntary team can deliver MVP in 3 months.
-- Firebase free tier sufficient for pilot.
+- Supabase free tier sufficient for pilot.

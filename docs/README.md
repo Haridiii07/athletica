@@ -6,7 +6,7 @@ Athletica is a comprehensive fitness trainer platform designed for trainers to m
 
 ## 🎯 **Key Features**
 
-### ✅ **Authentication System**
+### ✅ **Authentication System**\n- **Multi-Factor Authentication (MFA)** via Email or Phone Number\n- **OTP Verification** for identity confirmation\n- **Password Strength Requirements** (8 chars, uppercase, number, special char)\n- Email/Password authentication\n- Google Sign-In integration\n- Facebook Sign-In integration\n- Forgot Password functionality\n- Custom exception handling
 - Email/Password authentication
 - Google Sign-In integration
 - Facebook Sign-In integration
@@ -40,10 +40,10 @@ Athletica is a comprehensive fitness trainer platform designed for trainers to m
 ## 🛠️ **Tech Stack**
 
 - **Frontend**: Flutter 3.x with Dart
-- **State Management**: Provider
+- **State Management**: Riverpod
 - **HTTP Client**: Dio
 - **Local Storage**: Hive
-- **Authentication**: Firebase Auth + Custom Backend
+- **Authentication**: Supabase Auth & Postgres Database
 - **UI Framework**: Material Design 3
 
 ## 📁 **Project Structure**
@@ -103,15 +103,15 @@ lib/
 
 ### **Configuration**
 
-1. **Backend Setup**
+1. **Backend Setup**\n   - See the [Supabase Setup Guide](development/SUPABASE_SETUP.md) for full configuration details.
    - Update `lib/config/app_config.dart` with your backend URL
    - Configure authentication endpoints
    - Set `useMockApi = false` for production
 
-2. **Firebase Setup**
-   - Create a Firebase project
-   - Add `google-services.json` to `android/app/`
-   - Configure authentication providers
+
+
+
+
 
 ## 📱 **Platform Support**
 
