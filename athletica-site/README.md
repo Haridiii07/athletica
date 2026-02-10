@@ -90,16 +90,10 @@ Then visit `http://localhost:8000` in your browser.
 
 ## Deployment on Replit
 
-1. **Ensure Configuration**: The `.replit` and `replit.nix` files in this directory are configured for a Python HTTP server.
-2. **Import to Replit**:
-   - Create a new Repl by importing this repository from GitHub.
-   - Or, create a blank Repl and upload the files from this directory.
-3. **Run**:
-   - If importing the full repository, you may need to configure the run command or run manually from the shell:
-     ```bash
-     cd athletica-site && python3 -m http.server 8000
-     ```
-   - If this directory is the root of your Repl, simply click "Run".
+1. **Import to Replit**:
+   - Create a new Repl by importing this repository (`https://github.com/Haridiii07/athletica`).
+2. **Run**:
+   - Click the "Run" button. The valid configuration is now at the root of the repository, so no manual setup is needed.
 
 ## Support
 
