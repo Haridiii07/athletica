@@ -5,7 +5,7 @@ const nav = document.getElementById('nav');
 if (menuToggle && nav) {
     menuToggle.addEventListener('click', () => {
         nav.classList.toggle('active');
-        
+
         // Animate hamburger icon
         const spans = menuToggle.querySelectorAll('span');
         if (nav.classList.contains('active')) {
@@ -48,10 +48,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const href = this.getAttribute('href');
         if (href === '#') return;
-        
+
         e.preventDefault();
         const target = document.querySelector(href);
-        
+
         if (target) {
             const headerOffset = 80;
             const elementPosition = target.getBoundingClientRect().top;
@@ -99,26 +99,56 @@ if (!prefersReducedMotion) {
     });
 }
 
-// Handle form submission (Netlify will handle the actual submission)
-const contactForm = document.querySelector('.contact-form');
+// Handle form submission via Flask backend
+const contactForm = document.getElementById('contact-form');
 const formSuccess = document.getElementById('form-success');
 const submitBtn = document.getElementById('submit-btn');
 
 if (contactForm) {
-    // Check if form was submitted successfully (Netlify redirects with ?success=true)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-        if (formSuccess) formSuccess.style.display = 'flex';
-        if (contactForm) contactForm.style.display = 'none';
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    contactForm.addEventListener('submit', (e) => {
-        const submitButton = contactForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.textContent = 'Sending...';
-            submitButton.disabled = true;
+        if (submitBtn) {
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+        }
+
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value
+        };
+
+        try {
+            const response = await fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                if (formSuccess) formSuccess.style.display = 'flex';
+                contactForm.style.display = 'none';
+                contactForm.reset();
+            } else {
+                alert('Error sending message. Please try again.');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Send Message';
+                    submitBtn.disabled = false;
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error connecting to server.');
+            if (submitBtn) {
+                submitBtn.textContent = 'Send Message';
+                submitBtn.disabled = false;
+            }
         }
     });
 }

@@ -1,2 +1,2 @@
-run = "cd athletica-site && python3 -m http.server 8000"
-entrypoint = "athletica-site/index.html"
+run = "cd athletica-site && python3 app.py"
+entrypoint = "athletica-site/app.py"
